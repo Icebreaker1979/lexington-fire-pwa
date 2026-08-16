@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="/manifest.json">
+
+  <link
+  rel="apple-touch-icon"
+  href="/icons/icon-192.png"
+  >
+  <title>Lexington Fire Incidents</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  >
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(15, 23, 42, .97);
+      border-bottom: 1px solid #334155;
+      padding: 14px;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    #status {
+      margin-top: 5px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .refresh-button {
+      border: 0;
+      border-radius: 8px;
+      padding: 9px 12px;
+      background: #334155;
+      color: white;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .summary-box {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .summary-number {
+      display: block;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .summary-label {
+      display: block;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      margin-top: 12px;
+    }
+
+    .filter-button {
+      flex: 0 0 auto;
+      border: 1px solid #475569;
+      border-radius: 999px;
+      background: transparent;
+      color: #cbd5e1;
+      padding: 7px 12px;
+    }
+
+    .filter-button.active {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .settings-row {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
+    main {
+      padding: 12px 12px 80px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .incident {
+      background: #1e293b;
+      border-radius: 14px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      border-left: 6px solid #64748b;
+    }
+
+    .incident.medical { border-left-color: #3b82f6; }
+    .incident.fire    { border-left-color: #ef4444; }
+    .incident.hazmat  { border-left-color: #eab308; }
+    .incident.rescue  { border-left-color: #f97316; }
+    .incident.special { border-left-color: #a855f7; }
+
+    .incident-header {
+      padding: 14px;
+      cursor: pointer;
+    }
+
+    .incident-title {
+      font-size: 17px;
+      font-weight: bold;
+      margin-bottom: 7px;
+    }
+
+    .address {
+      font-size: 16px;
+      margin-bottom: 9px;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .badge {
+      padding: 4px 7px;
+      background: #334155;
+      border-radius: 6px;
+      font-size: 11px;
+    }
+
+    .incident-details {
+      display: none;
+      padding: 0 14px 14px;
+      border-top: 1px solid #334155;
+    }
+
+    .incident.open .incident-details {
+      display: block;
+    }
+
+    .detail-row {
+      padding-top: 9px;
+      font-size: 14px;
+      color: #cbd5e1;
+    }
+
+    .map-button {
+      margin-top: 12px;
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: #475569;
+      color: white;
+    }
+
+    #mapScreen {
+      display: none;
+    }
+
+    #map {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 64px;
+      z-index: 1;
+    }
+
+    .map-controls {
+      position: fixed;
+      z-index: 1500;
+      top: 215px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .map-controls button {
+      pointer-events: auto;
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: rgba(15, 23, 42, .95);
+      color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,.35);
+    }
+
+    .map-filter-panel {
+      position: fixed;
+      z-index: 1500;
+      top: 215px;
+      left: 12px;
+      background: rgba(15, 23, 42, .96);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 10px;
+      display: none;
+      min-width: 155px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.35);
+    }
+
+    .map-filter-panel.open {
+      display: block;
+    }
+
+    .map-filter-title {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
+
+    .map-filter-choice {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: 0;
+      padding: 8px;
+      border-radius: 7px;
+      background: transparent;
+      color: white;
+    }
+
+    .map-filter-choice.active {
+      background: #334155;
+    }
+
+    .map-marker {
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 4px solid white;
+      font-size: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.5);
+      position: relative;
+    }
+
+    .map-marker.medical { background: #2563eb; }
+    .map-marker.fire    { background: #dc2626; }
+    .map-marker.hazmat  { background: #ca8a04; }
+    .map-marker.rescue  { background: #ea580c; }
+    .map-marker.special { background: #9333ea; }
+    .map-marker.other   { background: #334155; }
+
+    .multi-count {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: white;
+      color: #111827;
+      font-size: 11px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #111827;
+    }
+
+    .leaflet-popup-content-wrapper,
+    .leaflet-popup-tip {
+      background: #1e293b;
+      color: #f8fafc;
+    }
+
+    .popup-title {
+      font-weight: bold;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .popup-address {
+      margin-bottom: 8px;
+    }
+
+    .popup-detail {
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .popup-divider {
+      border-top: 1px solid #475569;
+      margin: 10px 0;
+    }
+
+    .location-marker {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #2563eb;
+      border: 4px solid white;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, .25);
+    }
+
+    nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 64px;
+      z-index: 2000;
+      display: flex;
+      background: #111827;
+      border-top: 1px solid #334155;
+    }
+
+    .nav-button {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    .nav-button.active {
+      color: white;
+      background: #1e293b;
+    }
+
+    .nav-icon {
+      display: block;
+      font-size: 21px;
+      margin-bottom: 2px;
+    }
+
+    .empty {
+      text-align: center;
+      color: #94a3b8;
+      padding: 50px 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="incidentScreen">
+
+<header>
+  <div class="top-row">
+    <div>
+      <h1>Lexington Fire Incidents</h1>
+      <div id="status">Loading...</div>
+    </div>
+
+    <button class="refresh-button" onclick="loadIncidents(true)">
+      Refresh
+    </button>
+  </div>
+
+  <div class="summary">
+    <div class="summary-box">
+      <span class="summary-number" id="totalCount">0</span>
+      <span class="summary-label">Total</span>
+    </div>
+
+    <div class="summary-box">
+      <span class="summary-number" id="fireCount">0</span>
+      <span class="summary-label">Fire / Rescue</span>
+    </div>
+
+    <div class="summary-box">
+      <span class="summary-number" id="medicalCount">0</span>
+      <span class="summary-label">Medical</span>
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-button active" data-filter="all">All</button>
+    <button class="filter-button" data-filter="fire">Fire & Rescue</button>
+    <button class="filter-button" data-filter="medical">Medical</button>
+  </div>
+
+  <div class="settings-row">
+    <label>
+      <input type="checkbox" id="hideMedical">
+      Hide medical incidents
+    </label>
+  </div>
+</header>
+
+<main id="incidents"></main>
+
+</div>
+
+<div id="mapScreen">
+  <div id="map"></div>
+
+  <div class="map-filter-panel" id="mapFilterPanel">
+    <div class="map-filter-title">Map Filter</div>
+
+    <button class="map-filter-choice active" data-map-filter="all">
+      All incidents
+    </button>
+
+    <button class="map-filter-choice" data-map-filter="fire">
+      Fire / Rescue
+    </button>
+
+    <button class="map-filter-choice" data-map-filter="medical">
+      Medical
+    </button>
+  </div>
+
+  <div class="map-controls">
+    <button onclick="toggleMapFilter()">☰ Filter</button>
+    <button onclick="showMyLocation()">◎ My Location</button>
+  </div>
+</div>
+
+<nav>
+  <button
+    class="nav-button active"
+    id="incidentsNav"
+    onclick="showScreen('incidents')"
+  >
+    <span class="nav-icon">🚒</span>
+    Incidents
+  </button>
+
+  <button
+    class="nav-button"
+    id="mapNav"
+    onclick="showScreen('map')"
+  >
+    <span class="nav-icon">🗺️</span>
+    Map
+  </button>
+</nav>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+const API_URL = "/api/incidents";
+
+let incidents = [];
+let currentFilter = "all";
+let mapFilter = "all";
+let lastUpdated = null;
+
+let map = null;
+let markerLayer = null;
+let userLocationMarker = null;
+
+
+const FIRE_CODES = new Set([
+  "FSTR","FSTRW",
+  "FVEH","FVNS","FVLA",
+  "FBGL","FDUM","FTRS","FOTF",
+  "FCHI","FFIA","FVIS","FMAI",
+  "FELF","FTRN"
+]);
+
+const HAZMAT_CODES = new Set([
+  "FHMC","FFHMR","FHCL","FMERC",
+  "FHGEO","FBERTH","FSCU"
+]);
+
+const RESCUE_CODES = new Set([
+  "FCOL","FCSR","FDVR","FROP",
+  "FTRE","FLAR","FBERTR","FVAJ"
+]);
+
+const SPECIAL_CODES = new Set([
+  "FEXP","FBOT","FBWD",
+  "FAA1","FAA2","FAA3",
+  "FBAS","FSRCU","FMDR",
+  "FCSEPP","FMIS","FTRA"
+]);
+
+
+function getCategory(code) {
+  if (code === "MED") return "medical";
+  if (FIRE_CODES.has(code)) return "fire";
+  if (HAZMAT_CODES.has(code)) return "hazmat";
+  if (RESCUE_CODES.has(code)) return "rescue";
+  if (SPECIAL_CODES.has(code)) return "special";
+  return "other";
+}
+
+
+function getEmoji(code) {
+  if (code === "MED") return "🚑";
+  if (["FSTR","FSTRW"].includes(code)) return "🏠🔥";
+  if (["FVEH","FVNS","FVLA"].includes(code)) return "🚗🔥";
+  if (["FELF","FTRN"].includes(code)) return "⚡🔥";
+  if (HAZMAT_CODES.has(code)) return "☣️";
+  if (RESCUE_CODES.has(code)) return "🆘";
+  if (["FEXP","FBWD"].includes(code)) return "💥";
+  if (code === "FBOT") return "🧨";
+  if (["FAA1","FAA2","FAA3"].includes(code)) return "✈️";
+  if (SPECIAL_CODES.has(code)) return "🚨";
+  return "🚒";
+}
+
+
+function getFilteredIncidents() {
+  const hideMedical =
+    document.getElementById("hideMedical").checked;
+
+  return incidents.filter(inc => {
+    if (hideMedical && inc.code === "MED")
+      return false;
+
+    if (currentFilter === "medical")
+      return inc.code === "MED";
+
+    if (currentFilter === "fire")
+      return inc.code !== "MED";
+
+    return true;
+  });
+}
+
+
+function getMapFilteredIncidents() {
+  const hideMedical =
+    document.getElementById("hideMedical").checked;
+
+  return incidents.filter(inc => {
+    if (hideMedical && inc.code === "MED")
+      return false;
+
+    if (mapFilter === "medical")
+      return inc.code === "MED";
+
+    if (mapFilter === "fire")
+      return inc.code !== "MED";
+
+    return true;
+  });
+}
+
+
+function renderIncident(inc) {
+  const category = getCategory(inc.code);
+
+  let mapButton = "";
+
+  if (inc.latitude && inc.longitude) {
+    mapButton = `
+      <button
+        class="map-button"
+        onclick="event.stopPropagation(); showIncidentOnMap('${inc.id}')"
+      >
+        🗺️ Show on Map
+      </button>
+    `;
+  }
+
+  return `
+    <div class="incident ${category}"
+         onclick="this.classList.toggle('open')">
+
+      <div class="incident-header">
+
+        <div class="incident-title">
+          ${getEmoji(inc.code)} ${inc.label}
+        </div>
+
+        <div class="address">
+          ${inc.address || "Address unavailable"}
+        </div>
+
+        <div class="badges">
+          <span class="badge">${inc.code}</span>
+          <span class="badge">Incident #${inc.id}</span>
+        </div>
+
+      </div>
+
+      <div class="incident-details">
+
+        <div class="detail-row">
+          <strong>Alarm:</strong>
+          ${inc.alarm || "N/A"}
+        </div>
+
+        <div class="detail-row">
+          <strong>Enroute:</strong>
+          ${inc.enroute || "N/A"}
+        </div>
+
+        <div class="detail-row">
+          <strong>Arrived:</strong>
+          ${inc.arrive || "N/A"}
+        </div>
+
+        <div class="detail-row">
+          <strong>Apparatus:</strong>
+          ${inc.apparatus || "N/A"}
+        </div>
+
+        ${mapButton}
+
+      </div>
+    </div>
+  `;
+}
+
+
+function render() {
+  const container =
+    document.getElementById("incidents");
+
+  const filtered =
+    getFilteredIncidents();
+
+  if (!filtered.length) {
+    container.innerHTML =
+      '<div class="empty">No incidents match this filter.</div>';
+    return;
+  }
+
+  container.innerHTML =
+    filtered.map(renderIncident).join("");
+}
+
+
+function updateSummary() {
+  const total = incidents.length;
+
+  const medical =
+    incidents.filter(i => i.code === "MED").length;
+
+  document.getElementById("totalCount").textContent =
+    total;
+
+  document.getElementById("medicalCount").textContent =
+    medical;
+
+  document.getElementById("fireCount").textContent =
+    total - medical;
+}
+
+
+function initializeMap() {
+  if (map)
+    return;
+
+  map = L.map("map").setView(
+    [38.0406, -84.5037],
+    12
+  );
+
+  L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors"
+    }
+  ).addTo(map);
+
+  markerLayer =
+    L.layerGroup().addTo(map);
+}
+
+
+function groupIncidentsByLocation(source) {
+  const grouped = {};
+
+  source.forEach(inc => {
+    if (!inc.latitude || !inc.longitude)
+      return;
+
+    const key =
+      `${inc.latitude.toFixed(6)},${inc.longitude.toFixed(6)}`;
+
+    if (!grouped[key]) {
+      grouped[key] = {
+        latitude: inc.latitude,
+        longitude: inc.longitude,
+        incidents: []
+      };
+    }
+
+    grouped[key].incidents.push(inc);
+  });
+
+  return Object.values(grouped);
+}
+
+
+function buildPopup(group) {
+  const items = group.incidents;
+
+  let html = `
+    <div class="popup-address">
+      ${items[0].address}
+    </div>
+  `;
+
+  if (items.length > 1) {
+    html += `
+      <div class="popup-detail">
+        <strong>${items.length} active incidents at this location</strong>
+      </div>
+    `;
+  }
+
+  items.forEach((inc, index) => {
+    if (index > 0)
+      html += `<div class="popup-divider"></div>`;
+
+    html += `
+      <div class="popup-title">
+        ${getEmoji(inc.code)} ${inc.label}
+      </div>
+
+      <div class="popup-detail">
+        Incident #${inc.id}
+      </div>
+
+      <div class="popup-detail">
+        Alarm: ${inc.alarm || "N/A"}
+      </div>
+
+      <div class="popup-detail">
+        Enroute: ${inc.enroute || "N/A"}
+      </div>
+
+      <div class="popup-detail">
+        Arrived: ${inc.arrive || "N/A"}
+      </div>
+
+      <div class="popup-detail">
+        Units: ${inc.apparatus || "N/A"}
+      </div>
+    `;
+  });
+
+  return html;
+}
+
+
+function renderMap() {
+  initializeMap();
+
+  markerLayer.clearLayers();
+
+  const filtered =
+    getMapFilteredIncidents();
+
+  const groups =
+    groupIncidentsByLocation(filtered);
+
+  const bounds = [];
+
+  groups.forEach(group => {
+    const first =
+      group.incidents[0];
+
+    const category =
+      getCategory(first.code);
+
+    const count =
+      group.incidents.length;
+
+    const icon = L.divIcon({
+      className: "",
+      html: `
+        <div class="map-marker ${category}">
+          ${getEmoji(first.code)}
+          ${count > 1 ? `<div class="multi-count">${count}</div>` : ""}
+        </div>
+      `,
+      iconSize: [38, 38],
+      iconAnchor: [19, 19]
+    });
+
+    const marker = L.marker(
+      [group.latitude, group.longitude],
+      { icon }
+    );
+
+    marker.incidentIds =
+      group.incidents.map(i => i.id);
+
+    marker.bindPopup(
+      buildPopup(group),
+      { maxWidth: 300 }
+    );
+
+    marker.addTo(markerLayer);
+
+    bounds.push([
+      group.latitude,
+      group.longitude
+    ]);
+  });
+
+  if (bounds.length) {
+    map.fitBounds(bounds, {
+      padding: [30, 30],
+      maxZoom: 14
+    });
+  }
+
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 100);
+}
+
+
+function toggleMapFilter() {
+  document
+    .getElementById("mapFilterPanel")
+    .classList.toggle("open");
+}
+
+
+function showMyLocation() {
+  if (!navigator.geolocation) {
+    alert("Location is not supported on this device.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      const lat =
+        position.coords.latitude;
+
+      const lon =
+        position.coords.longitude;
+
+      initializeMap();
+
+      if (userLocationMarker) {
+        userLocationMarker.remove();
+      }
+
+      const icon = L.divIcon({
+        className: "",
+        html: `<div class="location-marker"></div>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9]
+      });
+
+      userLocationMarker = L.marker(
+        [lat, lon],
+        { icon }
+      ).addTo(map);
+
+      userLocationMarker.bindPopup(
+        "Your location"
+      );
+
+      map.setView(
+        [lat, lon],
+        15
+      );
+
+      userLocationMarker.openPopup();
+    },
+    error => {
+      alert(
+        "Unable to get your location. Make sure location permission is enabled."
+      );
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000
+    }
+  );
+}
+
+
+function showScreen(screen) {
+  const incidentScreen =
+    document.getElementById("incidentScreen");
+
+  const mapScreen =
+    document.getElementById("mapScreen");
+
+  const incidentsNav =
+    document.getElementById("incidentsNav");
+
+  const mapNav =
+    document.getElementById("mapNav");
+
+  if (screen === "map") {
+    incidentScreen.style.display = "none";
+    mapScreen.style.display = "block";
+
+    incidentsNav.classList.remove("active");
+    mapNav.classList.add("active");
+
+    renderMap();
+
+  } else {
+    mapScreen.style.display = "none";
+    incidentScreen.style.display = "block";
+
+    mapNav.classList.remove("active");
+    incidentsNav.classList.add("active");
+  }
+}
+
+
+function showIncidentOnMap(id) {
+  showScreen("map");
+
+  setTimeout(() => {
+    markerLayer.eachLayer(marker => {
+      if (
+        marker.incidentIds &&
+        marker.incidentIds.includes(id)
+      ) {
+        map.setView(
+          marker.getLatLng(),
+          16
+        );
+
+        marker.openPopup();
+      }
+    });
+  }, 150);
+}
+
+
+function updateStatus() {
+  if (!lastUpdated)
+    return;
+
+  const seconds =
+    Math.floor(
+      (Date.now() - lastUpdated.getTime()) / 1000
+    );
+
+  let text;
+
+  if (seconds < 10)
+    text = "Updated just now";
+
+  else if (seconds < 60)
+    text = `Updated ${seconds} seconds ago`;
+
+  else {
+    const minutes =
+      Math.floor(seconds / 60);
+
+    text =
+      `Updated ${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  }
+
+  document.getElementById("status").textContent =
+    text;
+}
+
+
+async function loadIncidents(manual = false) {
+  const status =
+    document.getElementById("status");
+
+  if (manual)
+    status.textContent = "Refreshing...";
+
+  try {
+    const response =
+      await fetch(API_URL, {
+        cache: "no-store"
+      });
+
+    const data =
+      await response.json();
+
+    if (!data.success)
+      throw new Error("API error");
+
+    incidents =
+      data.incidents;
+
+    lastUpdated =
+      new Date();
+
+    updateSummary();
+    render();
+    updateStatus();
+
+    if (
+      document.getElementById("mapScreen")
+        .style.display === "block"
+    ) {
+      renderMap();
+    }
+
+  } catch (error) {
+    status.textContent =
+      "Unable to load incidents";
+
+    console.error(error);
+  }
+}
+
+
+document.querySelectorAll(".filter-button")
+  .forEach(button => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll(".filter-button")
+        .forEach(b =>
+          b.classList.remove("active")
+        );
+
+      button.classList.add("active");
+
+      currentFilter =
+        button.dataset.filter;
+
+      render();
+    });
+  });
+
+
+document.querySelectorAll(".map-filter-choice")
+  .forEach(button => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll(".map-filter-choice")
+        .forEach(b =>
+          b.classList.remove("active")
+        );
+
+      button.classList.add("active");
+
+      mapFilter =
+        button.dataset.mapFilter;
+
+      document
+        .getElementById("mapFilterPanel")
+        .classList.remove("open");
+
+      renderMap();
+    });
+  });
+
+
+const hideMedical =
+  document.getElementById("hideMedical");
+
+hideMedical.checked =
+  localStorage.getItem("hideMedical") === "true";
+
+hideMedical.addEventListener("change", () => {
+  localStorage.setItem(
+    "hideMedical",
+    hideMedical.checked
+  );
+
+  render();
+
+  if (
+    document.getElementById("mapScreen")
+      .style.display === "block"
+  ) {
+    renderMap();
+  }
+});
+
+
+loadIncidents();
+
+setInterval(loadIncidents, 45000);
+setInterval(updateStatus, 10000);
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/service-worker.js")
+      .then(registration => {
+        console.log(
+          "Service worker registered:",
+          registration.scope
+        );
+      })
+      .catch(error => {
+        console.error(
+          "Service worker registration failed:",
+          error
+        );
+      });
+  });
+}
+</script>
+</body>
+</html>

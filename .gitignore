@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+api-venv/
+venv/
+.venv/
+
+# Secrets / environment files
+.env
+environment
+*.env
+
+# Runtime state
+seen_incidents.json
+geocode_cache.json
+
+# Backups
+*.backup
+*.bak
+
+# Logs
+*.log
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
