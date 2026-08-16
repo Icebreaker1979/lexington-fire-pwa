@@ -28,3 +28,4 @@ geocode_cache.json
 # OS/editor junk
 .DS_Store
 Thumbs.db
+*.pem
