@@ -469,6 +469,4 @@ Potential future additions include:
 
 ## 📄 License
 
-No license has currently been specified.
-
-Until a license is added, standard copyright rules apply to the source code in this repository.
+This project is licensed under the [MIT License](LICENSE).
