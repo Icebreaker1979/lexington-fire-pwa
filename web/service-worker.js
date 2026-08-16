@@ -1,4 +1,4 @@
-const CACHE_NAME = "lexington-fire-v1";
+const CACHE_NAME = "lexington-fire-v2";
 
 const APP_SHELL = [
   "/",
