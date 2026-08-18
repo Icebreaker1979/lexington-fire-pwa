@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, send_from_directory, request
 from bot import fetch_incidents
+from weather_service import get_weather_data
 import datetime
 import requests
 import json
@@ -425,6 +426,19 @@ def get_push_preferences():
         "success": True,
         "preferences": saved
     })
+
+@app.route("/api/weather")
+def weather():
+    try:
+        return jsonify(
+            get_weather_data()
+        )
+
+    except Exception as exc:
+        return jsonify({
+            "success": False,
+            "error": str(exc)
+        }), 500
 
 @app.route("/api/incidents")
 def incidents():

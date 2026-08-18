@@ -571,6 +571,123 @@
       color: #94a3b8;
       padding: 50px 10px;
     }
+
+    #weatherScreen {
+      display: none;
+      padding: 14px 14px 84px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .weather-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .weather-title { margin: 0; font-size: 20px; }
+    .weather-subtitle { margin-top: 4px; font-size: 12px; color: #94a3b8; }
+
+    .weather-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .weather-current-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .weather-temp { font-size: 42px; font-weight: bold; line-height: 1; }
+    .weather-description { margin-top: 5px; color: #cbd5e1; font-size: 16px; }
+    .weather-station { color: #94a3b8; font-size: 11px; text-align: right; }
+
+    .weather-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .weather-detail {
+      background: #0f172a;
+      border-radius: 9px;
+      padding: 9px;
+    }
+
+    .weather-detail-label {
+      display: block;
+      color: #94a3b8;
+      font-size: 10px;
+      margin-bottom: 3px;
+    }
+
+    .weather-detail-value { font-size: 14px; font-weight: bold; }
+    .weather-section-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+
+    .weather-alert {
+      border-left: 5px solid #ef4444;
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .weather-alert-title { font-weight: bold; margin-bottom: 5px; }
+    .weather-alert-meta { color: #cbd5e1; font-size: 12px; margin-bottom: 6px; }
+    .weather-alert-text { color: #cbd5e1; font-size: 13px; line-height: 1.4; white-space: pre-line; }
+    .weather-no-alerts { color: #94a3b8; font-size: 13px; }
+
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .forecast-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 11px;
+    }
+
+    .forecast-name { font-weight: bold; margin-bottom: 6px; }
+    .forecast-temp { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+    .forecast-short { color: #cbd5e1; font-size: 12px; min-height: 30px; }
+    .forecast-extra { color: #94a3b8; font-size: 11px; margin-top: 7px; }
+
+    .weather-links {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .weather-link {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 9px;
+      padding: 11px 8px;
+      background: #334155;
+      color: white;
+      font-size: 13px;
+    }
+
+    .weather-error { color: #fca5a5; padding: 20px 4px; text-align: center; }
+
+    @media (min-width: 600px) {
+      .weather-details { grid-template-columns: repeat(4, 1fr); }
+      .forecast-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
   </style>
 </head>
 
@@ -933,6 +1050,21 @@
 </div>
 
 
+
+<div id="weatherScreen">
+  <div class="weather-header">
+    <div>
+      <h1 class="weather-title">Lexington Weather</h1>
+      <div class="weather-subtitle" id="weatherStatus">NOAA / National Weather Service</div>
+    </div>
+    <button class="refresh-button" onclick="loadWeather(true)">Refresh</button>
+  </div>
+
+  <div id="weatherContent">
+    <div class="empty">Loading weather...</div>
+  </div>
+</div>
+
 <nav>
 
   <button
@@ -964,6 +1096,16 @@
 
   </button>
 
+
+  <button
+    class="nav-button"
+    id="weatherNav"
+    onclick="showScreen('weather')"
+  >
+    <span class="nav-icon">⛈️</span>
+    Weather
+  </button>
+
 </nav>
 
 
@@ -975,6 +1117,10 @@
 <script>
 
 const API_URL = "/api/incidents";
+const WEATHER_API_URL = "/api/weather";
+
+let weatherLoaded = false;
+let weatherLastUpdated = null;
 
 
 let incidents = [];
@@ -2594,95 +2740,204 @@ function showMyLocation() {
 }
 
 
+
+function escapeWeatherHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatWeatherObservationTime(timestamp) {
+  if (!timestamp) return "N/A";
+  try {
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit"
+    });
+  } catch (error) {
+    return "N/A";
+  }
+}
+
+function renderWeather(data) {
+  const container = document.getElementById("weatherContent");
+  const current = data.current || {};
+  const alerts = Array.isArray(data.alerts) ? data.alerts : [];
+  const forecast = Array.isArray(data.forecast) ? data.forecast : [];
+  const links = data.links || {};
+
+  const temp = current.temperature_f ?? "N/A";
+  const feels = current.feels_like_f ?? "N/A";
+  const humidity = current.humidity_percent ?? current.relative_humidity_percent ?? "N/A";
+  const dewPoint = current.dew_point_f ?? "N/A";
+  const pressure = current.pressure_inhg ?? "N/A";
+  const windSpeed = current.wind_speed_mph ?? "N/A";
+  const gustText = current.wind_gust_mph ? `${current.wind_gust_mph} mph` : "None";
+  const station = current.station_name || current.station || "NWS observation station";
+  const windDirection = current.wind_direction || "";
+
+  const alertHtml = alerts.length
+    ? alerts.map(alert => {
+        const title = alert.event || alert.headline || "Weather Alert";
+        const meta = [
+          alert.severity,
+          alert.urgency,
+          alert.certainty
+        ].filter(Boolean).join(" • ");
+        const body = alert.description || alert.instruction || alert.headline || "";
+        return `
+          <div class="weather-alert">
+            <div class="weather-alert-title">${escapeWeatherHtml(title)}</div>
+            ${meta ? `<div class="weather-alert-meta">${escapeWeatherHtml(meta)}</div>` : ""}
+            ${body ? `<div class="weather-alert-text">${escapeWeatherHtml(body)}</div>` : ""}
+          </div>
+        `;
+      }).join("")
+    : `<div class="weather-no-alerts">No active weather alerts for Fayette County.</div>`;
+
+  const forecastHtml = forecast.length
+    ? forecast.map(period => `
+        <div class="forecast-card">
+          <div class="forecast-name">${escapeWeatherHtml(period.name || "")}</div>
+          <div class="forecast-temp">${escapeWeatherHtml(period.temperature ?? "")}${period.temperature != null ? "°" : ""}${escapeWeatherHtml(period.temperature_unit || "F")}</div>
+          <div class="forecast-short">${escapeWeatherHtml(period.short_forecast || period.description || "")}</div>
+          <div class="forecast-extra">
+            ${escapeWeatherHtml(period.wind_direction || "")}
+            ${period.wind_speed ? ` ${escapeWeatherHtml(period.wind_speed)}` : ""}
+          </div>
+        </div>
+      `).join("")
+    : `<div class="weather-no-alerts">Forecast unavailable.</div>`;
+
+  const radarUrl = links.radar || "https://radar.weather.gov/";
+  const forecastUrl = links.forecast || "https://forecast.weather.gov/MapClick.php?lat=38.0406&lon=-84.5037";
+
+  container.innerHTML = `
+    <div class="weather-card">
+      <div class="weather-current-top">
+        <div>
+          <div class="weather-temp">${escapeWeatherHtml(temp)}${temp !== "N/A" ? "°F" : ""}</div>
+          <div class="weather-description">${escapeWeatherHtml(current.description || "Current conditions")}</div>
+        </div>
+        <div class="weather-station">
+          ${escapeWeatherHtml(station)}<br>
+          Observed ${escapeWeatherHtml(formatWeatherObservationTime(current.timestamp))}
+        </div>
+      </div>
+
+      <div class="weather-details">
+        <div class="weather-detail">
+          <span class="weather-detail-label">Feels Like</span>
+          <span class="weather-detail-value">${escapeWeatherHtml(feels)}${feels !== "N/A" ? "°F" : ""}</span>
+        </div>
+        <div class="weather-detail">
+          <span class="weather-detail-label">Humidity</span>
+          <span class="weather-detail-value">${escapeWeatherHtml(humidity)}${humidity !== "N/A" ? "%" : ""}</span>
+        </div>
+        <div class="weather-detail">
+          <span class="weather-detail-label">Wind</span>
+          <span class="weather-detail-value">${escapeWeatherHtml(windDirection)} ${escapeWeatherHtml(windSpeed)}${windSpeed !== "N/A" ? " mph" : ""}</span>
+        </div>
+        <div class="weather-detail">
+          <span class="weather-detail-label">Wind Gust</span>
+          <span class="weather-detail-value">${escapeWeatherHtml(gustText)}</span>
+        </div>
+        <div class="weather-detail">
+          <span class="weather-detail-label">Dew Point</span>
+          <span class="weather-detail-value">${escapeWeatherHtml(dewPoint)}${dewPoint !== "N/A" ? "°F" : ""}</span>
+        </div>
+        <div class="weather-detail">
+          <span class="weather-detail-label">Pressure</span>
+          <span class="weather-detail-value">${escapeWeatherHtml(pressure)}${pressure !== "N/A" ? " inHg" : ""}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="weather-card">
+      <div class="weather-section-title">Active Fayette County Alerts</div>
+      ${alertHtml}
+    </div>
+
+    <div class="weather-card">
+      <div class="weather-section-title">Forecast</div>
+      <div class="forecast-grid">${forecastHtml}</div>
+
+      <div class="weather-links">
+        <a class="weather-link" href="${escapeWeatherHtml(radarUrl)}" target="_blank" rel="noopener">NWS Radar</a>
+        <a class="weather-link" href="${escapeWeatherHtml(forecastUrl)}" target="_blank" rel="noopener">Full Forecast</a>
+      </div>
+    </div>
+  `;
+}
+
+async function loadWeather(manual = false) {
+  const status = document.getElementById("weatherStatus");
+  const container = document.getElementById("weatherContent");
+
+  if (manual) status.textContent = "Refreshing NOAA / NWS weather...";
+  else if (!weatherLoaded) status.textContent = "Loading NOAA / NWS weather...";
+
+  try {
+    const response = await fetch(WEATHER_API_URL, { cache: "no-store" });
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Weather API error");
+    }
+
+    renderWeather(data);
+    weatherLoaded = true;
+    weatherLastUpdated = new Date();
+    status.textContent = `NOAA / National Weather Service • Updated ${weatherLastUpdated.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}`;
+  } catch (error) {
+    console.error(error);
+    status.textContent = "Unable to load weather";
+    container.innerHTML = `<div class="weather-error">Weather data is temporarily unavailable.</div>`;
+  }
+}
+
+
 function showScreen(
   screen
 ) {
+  const incidentScreen = document.getElementById("incidentScreen");
+  const mapScreen = document.getElementById("mapScreen");
+  const weatherScreen = document.getElementById("weatherScreen");
 
-  const incidentScreen =
-    document.getElementById(
-      "incidentScreen"
-    );
+  const incidentsNav = document.getElementById("incidentsNav");
+  const mapNav = document.getElementById("mapNav");
+  const weatherNav = document.getElementById("weatherNav");
 
+  incidentScreen.style.display = "none";
+  mapScreen.style.display = "none";
+  weatherScreen.style.display = "none";
 
-  const mapScreen =
-    document.getElementById(
-      "mapScreen"
-    );
+  incidentsNav.classList.remove("active");
+  mapNav.classList.remove("active");
+  weatherNav.classList.remove("active");
 
-
-  const incidentsNav =
-    document.getElementById(
-      "incidentsNav"
-    );
-
-
-  const mapNav =
-    document.getElementById(
-      "mapNav"
-    );
-
-
-  if (
-    screen ===
-    "map"
-  ) {
-
-    incidentScreen
-      .style
-      .display =
-        "none";
-
-
-    mapScreen
-      .style
-      .display =
-        "block";
-
-
-    incidentsNav
-      .classList
-      .remove(
-        "active"
-      );
-
-
-    mapNav
-      .classList
-      .add(
-        "active"
-      );
-
-
+  if (screen === "map") {
+    mapScreen.style.display = "block";
+    mapNav.classList.add("active");
     renderMap();
-
-  } else {
-
-    mapScreen
-      .style
-      .display =
-        "none";
-
-
-    incidentScreen
-      .style
-      .display =
-        "block";
-
-
-    mapNav
-      .classList
-      .remove(
-        "active"
-      );
-
-
-    incidentsNav
-      .classList
-      .add(
-        "active"
-      );
-
+    return;
   }
+
+  if (screen === "weather") {
+    weatherScreen.style.display = "block";
+    weatherNav.classList.add("active");
+
+    if (!weatherLoaded) {
+      loadWeather();
+    }
+    return;
+  }
+
+  incidentScreen.style.display = "block";
+  incidentsNav.classList.add("active");
 }
 
 
