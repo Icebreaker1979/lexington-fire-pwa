@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from pywebpush import webpush, WebPushException
+from weather_service import get_fayette_alerts
 import time
 import json
 import os
@@ -15,6 +16,7 @@ PUSH_PREFERENCES_FILE = "/var/lib/lfd-bot/push_preferences.json"
 VAPID_PRIVATE_KEY = "/opt/lfd-bot/private_key.pem"
 VAPID_SUBJECT = "mailto:admin@icebreaker1979.foo"
 STATE_FILE = "/var/lib/lfd-bot/seen_incidents.json"
+WEATHER_ALERT_STATE_FILE = "/var/lib/lfd-bot/seen_weather_alerts.json"
 
 CODES = {
     "FAA1":   "Aircraft Alert 1",
@@ -301,7 +303,8 @@ def send_push_notifications(inc, upgraded=False):
                 "hazmat": True,
                 "rescue": True,
                 "special": True,
-                "medical": False
+                "medical": False,
+	        "weather_alerts": False
             }
         )
 
@@ -367,6 +370,203 @@ def send_push_notifications(inc, upgraded=False):
     if len(valid_subscriptions) != len(subscriptions):
         save_push_subscriptions(valid_subscriptions)
 
+def send_weather_push_notifications(alert):
+    subscriptions = load_push_subscriptions()
+    preferences_by_endpoint = load_push_preferences()
+
+    if not subscriptions:
+        print("[Weather Push] No subscribers.")
+        return
+
+    alert_event = (
+        alert.get("event")
+        or "NWS Weather Alert"
+    )
+
+    alert_headline = (
+        alert.get("headline")
+        or alert_event
+    )
+
+    alert_id = (
+        alert.get("id")
+        or alert_event
+    )
+
+    payload = json.dumps({
+        "title": f"⚠️ {alert_event}",
+        "body": alert_headline,
+        "weather_alert": True,
+        "alert_id": alert_id,
+        "url": "/"
+    })
+
+    valid_subscriptions = []
+
+    for subscription in subscriptions:
+        endpoint = subscription.get(
+            "endpoint",
+            ""
+        )
+
+        preferences = (
+            preferences_by_endpoint.get(
+                endpoint,
+                {}
+            )
+        )
+
+        weather_enabled = (
+            preferences.get(
+                "weather_alerts",
+                False
+            )
+        )
+
+        if not weather_enabled:
+            valid_subscriptions.append(
+                subscription
+            )
+
+            print(
+                f"[Weather Push] Skipped "
+                f"{alert_event} for subscriber preference"
+            )
+
+            continue
+
+        try:
+            webpush(
+                subscription_info=subscription,
+                data=payload,
+                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_claims={
+                    "sub": VAPID_SUBJECT
+                },
+                ttl=300
+            )
+
+            valid_subscriptions.append(
+                subscription
+            )
+
+            print(
+                f"[Weather Push] Sent: "
+                f"{alert_event}"
+            )
+
+        except WebPushException as exc:
+            status_code = None
+
+            if exc.response is not None:
+                status_code = (
+                    exc.response.status_code
+                )
+
+            print(
+                f"[Weather Push ERROR] "
+                f"HTTP {status_code}: {exc}"
+            )
+
+            if status_code not in (404, 410):
+                valid_subscriptions.append(
+                    subscription
+                )
+
+        except Exception as exc:
+            print(
+                f"[Weather Push ERROR] {exc}"
+            )
+
+            valid_subscriptions.append(
+                subscription
+            )
+
+    if (
+        len(valid_subscriptions)
+        != len(subscriptions)
+    ):
+        save_push_subscriptions(
+            valid_subscriptions
+        )
+
+def check_weather_alerts(seen_weather_alerts):
+    try:
+        alerts = get_fayette_alerts()
+
+        active_alert_ids = set()
+
+        for alert in alerts:
+            alert_id = alert.get("id")
+
+            if not alert_id:
+                continue
+
+            active_alert_ids.add(alert_id)
+
+            if alert_id in seen_weather_alerts:
+                continue
+
+            print(
+                f"[Weather] New alert: "
+                f"{alert.get('event', 'Weather Alert')}"
+            )
+
+            send_weather_push_notifications(
+                alert
+            )
+
+            seen_weather_alerts.add(
+                alert_id
+            )
+
+        save_seen_weather_alerts(
+            seen_weather_alerts
+        )
+
+        return seen_weather_alerts
+
+    except Exception as exc:
+        print(
+            f"[Weather ERROR] {exc}"
+        )
+
+        return seen_weather_alerts
+
+def load_seen_weather_alerts():
+    try:
+        with open(WEATHER_ALERT_STATE_FILE, "r") as f:
+            data = json.load(f)
+
+        if isinstance(data, list):
+            return set(data)
+
+        return set()
+
+    except (FileNotFoundError, json.JSONDecodeError):
+        return set()
+
+
+def save_seen_weather_alerts(alert_ids):
+    os.makedirs(
+        os.path.dirname(WEATHER_ALERT_STATE_FILE),
+        exist_ok=True
+    )
+
+    temp_file = WEATHER_ALERT_STATE_FILE + ".tmp"
+
+    with open(temp_file, "w") as f:
+        json.dump(
+            sorted(alert_ids),
+            f,
+            indent=2
+        )
+
+    os.replace(
+        temp_file,
+        WEATHER_ALERT_STATE_FILE
+    )
+
 def load_seen():
     try:
         data = json.load(open(STATE_FILE))
@@ -383,9 +583,15 @@ def save_seen(seen):
 
 def main():
     print("LFD Bot started. Watching for incidents...")
+
     seen = load_seen()
+    seen_weather_alerts = load_seen_weather_alerts()
 
     while True:
+
+        # ---------------------------------
+        # Lexington Fire incident checking
+        # ---------------------------------
         try:
             incidents = fetch_incidents()
 
@@ -449,7 +655,25 @@ def main():
             save_seen(seen)
 
         except Exception as e:
-            print(f"[ERROR] {e}")
+            print(
+                f"[Incident ERROR] {e}"
+            )
+
+
+        # ---------------------------------
+        # Fayette County NWS alert checking
+        # Runs even if fire feed is down.
+        # ---------------------------------
+        try:
+            seen_weather_alerts = check_weather_alerts(
+                seen_weather_alerts
+            )
+
+        except Exception as e:
+            print(
+                f"[Weather Loop ERROR] {e}"
+            )
+
 
         time.sleep(45)
 

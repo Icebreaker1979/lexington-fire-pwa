@@ -375,7 +375,8 @@ def push_preferences():
         "hazmat",
         "rescue",
         "special",
-        "medical"
+        "medical",
+	"weather_alerts"
     }
 
     cleaned = {}
@@ -419,7 +420,8 @@ def get_push_preferences():
             "hazmat": True,
             "rescue": True,
             "special": True,
-            "medical": False
+            "medical": False,
+	    "weather_alerts": False
         }
 
     return jsonify({

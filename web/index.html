@@ -969,6 +969,17 @@
 
       </label>
 
+      <label class="preference-item">
+
+        <input
+          type="checkbox"
+          id="prefWeather"
+        >
+
+        ⛈️ NWS Weather Alerts
+
+      </label>
+
 
       <button
         class="save-preferences"
@@ -1480,6 +1491,14 @@ async function loadPushPreferences() {
         !!prefs.medical;
 
 
+    document
+      .getElementById(
+        "prefWeather"
+      )
+      .checked =
+        !!prefs.weather_alerts;
+
+
     handleAllIncidentsChange();
 
 
@@ -1636,6 +1655,14 @@ async function savePushPreferences() {
       document
         .getElementById(
           "prefMedical"
+        )
+        .checked,
+
+
+    weather_alerts:
+      document
+        .getElementById(
+          "prefWeather"
         )
         .checked
   };

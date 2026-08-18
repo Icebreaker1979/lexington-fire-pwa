@@ -294,6 +294,15 @@ def get_alerts(county_zone_url):
     return alerts
 
 
+def get_fayette_alerts():
+    fayette_zone_url = (
+        f"{NWS_BASE}/zones/county/KYC067"
+    )
+
+    return get_alerts(
+        fayette_zone_url
+    )
+
 def build_weather_data():
     point_url = (
         f"{NWS_BASE}/points/"
