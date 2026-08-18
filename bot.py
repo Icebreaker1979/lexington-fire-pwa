@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+from pywebpush import webpush, WebPushException
 import time
 import json
 import os
@@ -9,6 +10,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 STATUS_URL = "https://fire.lexingtonky.gov/open/status/status.htm"
 DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK")
+PUSH_SUBSCRIPTIONS_FILE = "/var/lib/lfd-bot/push_subscriptions.json"
+VAPID_PRIVATE_KEY = "/opt/lfd-bot/private_key.pem"
+VAPID_SUBJECT = "mailto:admin@icebreaker1979.foo"
 STATE_FILE = "/var/lib/lfd-bot/seen_incidents.json"
 
 CODES = {
@@ -33,6 +37,8 @@ CODES = {
     "FDUM":   "Dumpster Fire",
     "FELC":   "Electrical Cutoff",
     "FELF":   "Electrical Fire",
+    "FWID":   "Wires Down",
+    "FUTL":   "Utility Cutoff",
     "FELS":   "Elevator Situation",
     "FEXP":   "Explosion",
     "FFIA":   "Fire in an Appliance",
@@ -87,7 +93,7 @@ ALLOWED_CODES = {
     "FVEH", "FVNS", "FVLA",
     "FBGL", "FDUM", "FTRS", "FOTF",
     "FCHI", "FFIA", "FVIS", "FMAI",
-    "FELF", "FTRN",
+    "FELF", "FTRN", "FWID", "FUTL",
     "FHMC", "FFHMR", "FHCL", "FMERC", "FHGEO", "FBERTH", "FSCU",
     "FCOL", "FCSR", "FDVR", "FROP", "FTRE", "FLAR", "FBERTR", "FVAJ",
     "FEXP", "FBOT", "FBWD",
@@ -101,7 +107,7 @@ def get_emoji_and_color(code):
     if code in ("FVEH", "FVNS", "FVLA"):                             return "🚗🔥", 0xFF4500
     if code in ("FBGL", "FDUM", "FTRS", "FOTF", "FCHI", "FFIA",
                 "FVIS", "FMAI"):                                      return "🔥",   0xFF6600
-    if code in ("FELF", "FTRN"):                                      return "⚡🔥", 0xF1C40F
+    if code in ("FELF", "FTRN", "FWID", "FUTL"): return "⚡", 0xF1C40F
     if code in ("FHMC", "FFHMR", "FHCL", "FMERC", "FHGEO",
                 "FBERTH", "FSCU"):                                    return "☣️",   0xFFD700
     if code in ("FCOL", "FCSR", "FDVR", "FROP", "FTRE", "FLAR",
@@ -175,6 +181,106 @@ def send_discord(inc, upgraded=False):
     }
     requests.post(DISCORD_WEBHOOK, json=payload, timeout=10, verify=False)
 
+def load_push_subscriptions():
+    try:
+        with open(PUSH_SUBSCRIPTIONS_FILE, "r") as f:
+            data = json.load(f)
+
+        if isinstance(data, list):
+            return data
+
+        return []
+
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def save_push_subscriptions(subscriptions):
+    os.makedirs(
+        os.path.dirname(PUSH_SUBSCRIPTIONS_FILE),
+        exist_ok=True
+    )
+
+    temp_file = PUSH_SUBSCRIPTIONS_FILE + ".tmp"
+
+    with open(temp_file, "w") as f:
+        json.dump(subscriptions, f, indent=2)
+
+    os.replace(temp_file, PUSH_SUBSCRIPTIONS_FILE)
+
+
+def send_push_notifications(inc, upgraded=False):
+    subscriptions = load_push_subscriptions()
+
+    if not subscriptions:
+        print("[Push] No subscribers.")
+        return
+
+    if upgraded:
+        title = f"🚨 Incident Upgraded — {inc['label']}"
+    else:
+        title = f"🚒 {inc['label']}"
+
+    body = inc["address"]
+
+    if inc.get("apparatus"):
+        body += f"\nUnits: {inc['apparatus']}"
+
+    payload = json.dumps({
+        "title": title,
+        "body": body,
+        "incident_id": inc["id"],
+        "code": inc["code"],
+        "url": "/"
+    })
+
+    valid_subscriptions = []
+
+    for subscription in subscriptions:
+        try:
+            webpush(
+                subscription_info=subscription,
+                data=payload,
+                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_claims={
+                    "sub": VAPID_SUBJECT
+                },
+                ttl=300
+            )
+
+            valid_subscriptions.append(subscription)
+
+            print(
+                f"[Push] Sent incident #{inc['id']}"
+            )
+
+        except WebPushException as exc:
+            status_code = None
+
+            if exc.response is not None:
+                status_code = exc.response.status_code
+
+            print(
+                f"[Push ERROR] Incident #{inc['id']} "
+                f"HTTP {status_code}: {exc}"
+            )
+
+            # 404 or 410 normally means the browser's
+            # push subscription is no longer valid.
+            if status_code not in (404, 410):
+                valid_subscriptions.append(subscription)
+
+        except Exception as exc:
+            print(
+                f"[Push ERROR] Incident #{inc['id']}: {exc}"
+            )
+
+            valid_subscriptions.append(subscription)
+
+    # Remove expired subscriptions from our list.
+    if len(valid_subscriptions) != len(subscriptions):
+        save_push_subscriptions(valid_subscriptions)
+
 def load_seen():
     try:
         data = json.load(open(STATE_FILE))
@@ -203,21 +309,48 @@ def main():
                 if prev_code is None:
                     # Brand new incident
                     seen[inc_id] = inc_code
+
                     if inc_code in ALLOWED_CODES:
                         send_discord(inc)
-                        print(f"[+] Notified: #{inc_id} {inc_code} — {inc['address']}")
+                        send_push_notifications(inc)
+
+                        print(
+                            f"[+] Notified: #{inc_id} "
+                            f"{inc_code} — {inc['address']}"
+                        )
                     else:
-                        print(f"[~] Skipped:  #{inc_id} {inc_code} — {inc['label']}")
+                        print(
+                            f"[~] Skipped:  #{inc_id} "
+                            f"{inc_code} — {inc['label']}"
+                        )
 
                 elif prev_code != inc_code:
                     # Code changed on existing incident
                     seen[inc_id] = inc_code
+
                     if inc_code in ALLOWED_CODES:
                         inc["upgraded_from"] = prev_code
-                        send_discord(inc, upgraded=True)
-                        print(f"[↑] Upgraded: #{inc_id} {prev_code} → {inc_code} — {inc['address']}")
+
+                        send_discord(
+                            inc,
+                            upgraded=True
+                        )
+
+                        send_push_notifications(
+                            inc,
+                            upgraded=True
+                        )
+
+                        print(
+                            f"[↑] Upgraded: #{inc_id} "
+                            f"{prev_code} → {inc_code} "
+                            f"— {inc['address']}"
+                        )
                     else:
-                        print(f"[~] Changed (not notified): #{inc_id} {prev_code} → {inc_code}")
+                        print(
+                            f"[~] Changed (not notified): "
+                            f"#{inc_id} {prev_code} → {inc_code}"
+                        )
 
             save_seen(seen)
         except Exception as e:

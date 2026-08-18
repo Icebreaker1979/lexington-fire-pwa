@@ -4,13 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0f172a">
+
+  <title>Lexington Fire Incidents</title>
+
   <link rel="manifest" href="/manifest.json">
 
   <link
-  rel="apple-touch-icon"
-  href="/icons/icon-192.png"
+    rel="apple-touch-icon"
+    href="/icons/icon-192.png"
   >
-  <title>Lexington Fire Incidents</title>
 
   <link
     rel="stylesheet"
@@ -119,6 +121,12 @@
       margin-top: 10px;
       font-size: 13px;
       color: #cbd5e1;
+    }
+
+    .push-status {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #94a3b8;
     }
 
     main {
@@ -423,6 +431,23 @@
       <input type="checkbox" id="hideMedical">
       Hide medical incidents
     </label>
+
+    <br><br>
+
+    <button
+      id="pushButton"
+      class="refresh-button"
+      onclick="togglePushNotifications()"
+    >
+      Enable Notifications
+    </button>
+
+    <div
+      id="pushStatus"
+      class="push-status"
+    >
+      Checking notification status...
+    </div>
   </div>
 </header>
 
@@ -495,7 +520,7 @@ const FIRE_CODES = new Set([
   "FVEH","FVNS","FVLA",
   "FBGL","FDUM","FTRS","FOTF",
   "FCHI","FFIA","FVIS","FMAI",
-  "FELF","FTRN"
+  "FELF","FTRN","FWID","FUTL"
 ]);
 
 const HAZMAT_CODES = new Set([
@@ -530,7 +555,7 @@ function getEmoji(code) {
   if (code === "MED") return "🚑";
   if (["FSTR","FSTRW"].includes(code)) return "🏠🔥";
   if (["FVEH","FVNS","FVLA"].includes(code)) return "🚗🔥";
-  if (["FELF","FTRN"].includes(code)) return "⚡🔥";
+  if (["FELF","FTRN","FWID","FUTL"].includes(code)) return "⚡";
   if (HAZMAT_CODES.has(code)) return "☣️";
   if (RESCUE_CODES.has(code)) return "🆘";
   if (["FEXP","FBWD"].includes(code)) return "💥";
@@ -538,6 +563,205 @@ function getEmoji(code) {
   if (["FAA1","FAA2","FAA3"].includes(code)) return "✈️";
   if (SPECIAL_CODES.has(code)) return "🚨";
   return "🚒";
+}
+
+
+function urlBase64ToUint8Array(base64String) {
+  const padding =
+    "=".repeat((4 - base64String.length % 4) % 4);
+
+  const base64 =
+    (base64String + padding)
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+
+  const rawData =
+    window.atob(base64);
+
+  return Uint8Array.from(
+    [...rawData].map(
+      char => char.charCodeAt(0)
+    )
+  );
+}
+
+
+async function updatePushStatus() {
+  const button =
+    document.getElementById("pushButton");
+
+  const status =
+    document.getElementById("pushStatus");
+
+  if (
+    !("serviceWorker" in navigator) ||
+    !("PushManager" in window)
+  ) {
+    button.disabled = true;
+    status.textContent =
+      "Push notifications are not supported.";
+    return;
+  }
+
+  try {
+    const registration =
+      await navigator.serviceWorker.ready;
+
+    const subscription =
+      await registration.pushManager.getSubscription();
+
+    if (subscription) {
+      button.textContent =
+        "Disable Notifications";
+
+      status.textContent =
+        "Notifications enabled.";
+    } else {
+      button.textContent =
+        "Enable Notifications";
+
+      if (Notification.permission === "denied") {
+        status.textContent =
+          "Notifications are blocked in Android settings.";
+      } else {
+        status.textContent =
+          "Notifications disabled.";
+      }
+    }
+
+  } catch (error) {
+    console.error(error);
+
+    status.textContent =
+      "Unable to check notification status.";
+  }
+}
+
+
+async function togglePushNotifications() {
+  const button =
+    document.getElementById("pushButton");
+
+  const status =
+    document.getElementById("pushStatus");
+
+  try {
+    button.disabled = true;
+
+    const registration =
+      await navigator.serviceWorker.ready;
+
+    const existing =
+      await registration.pushManager.getSubscription();
+
+    if (existing) {
+      await fetch(
+        "/api/push/unsubscribe",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            endpoint: existing.endpoint
+          })
+        }
+      );
+
+      await existing.unsubscribe();
+
+      status.textContent =
+        "Notifications disabled.";
+
+      await updatePushStatus();
+
+      return;
+    }
+
+    if (Notification.permission === "denied") {
+      alert(
+        "Notifications are blocked for Lexington Fire. " +
+        "Enable notifications in Android app settings."
+      );
+
+      return;
+    }
+
+    const permission =
+      await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      status.textContent =
+        "Notification permission was not granted.";
+
+      return;
+    }
+
+    status.textContent =
+      "Enabling notifications...";
+
+    const response =
+      await fetch("/api/push/public-key");
+
+    if (!response.ok) {
+      throw new Error(
+        "Could not retrieve VAPID public key."
+      );
+    }
+
+    const data =
+      await response.json();
+
+    const applicationServerKey =
+      urlBase64ToUint8Array(
+        data.publicKey
+      );
+
+    const subscription =
+      await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey
+      });
+
+    const saveResponse =
+      await fetch(
+        "/api/push/subscribe",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(
+            subscription.toJSON()
+          )
+        }
+      );
+
+    if (!saveResponse.ok) {
+      throw new Error(
+        "Could not save push subscription."
+      );
+    }
+
+    status.textContent =
+      "Notifications enabled.";
+
+    await updatePushStatus();
+
+  } catch (error) {
+    console.error(error);
+
+    status.textContent =
+      "Unable to enable notifications.";
+
+    alert(
+      "Could not enable notifications. " +
+      "Check the browser console or server logs."
+    );
+
+  } finally {
+    button.disabled = false;
+  }
 }
 
 
@@ -1104,10 +1328,14 @@ hideMedical.addEventListener("change", () => {
 
 
 loadIncidents();
+updatePushStatus();
 
 setInterval(loadIncidents, 45000);
 setInterval(updateStatus, 10000);
+
 </script>
+
+
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
@@ -1128,5 +1356,6 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+
 </body>
 </html>
