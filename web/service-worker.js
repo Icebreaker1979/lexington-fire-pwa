@@ -1,4 +1,4 @@
-const CACHE_NAME = "lexington-fire-v2";
+const CACHE_NAME = "lexington-fire-v5";
 
 const APP_SHELL = [
   "/",
@@ -71,4 +71,60 @@ self.addEventListener("fetch", event => {
         )
     );
   }
+});
+self.addEventListener("push", event => {
+  let data = {
+    title: "Lexington Fire",
+    body: "New incident",
+    url: "/"
+  };
+
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch {
+      data.body = event.data.text();
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(
+      data.title || "Lexington Fire",
+      {
+        body: data.body || "",
+        icon: "/icons/icon-192.png",
+        badge: "/icons/badge-96.png",
+        data: {
+          url: data.url || "/"
+        },
+        tag: data.incident_id
+          ? `incident-${data.incident_id}`
+          : undefined
+      }
+    )
+  );
+});
+
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+
+  const url =
+    event.notification.data?.url || "/";
+
+  event.waitUntil(
+    clients.matchAll({
+      type: "window",
+      includeUncontrolled: true
+    }).then(windowClients => {
+      for (const client of windowClients) {
+        if ("focus" in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+
+      return clients.openWindow(url);
+    })
+  );
 });

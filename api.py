@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, request
 from bot import fetch_incidents
 import datetime
 import requests
@@ -15,6 +15,11 @@ GEOCODE_URL = (
 
 GEOCODE_CACHE_FILE = "/var/lib/lfd-bot/geocode_cache.json"
 
+PUSH_SUBSCRIPTIONS_FILE = "/var/lib/lfd-bot/push_subscriptions.json"
+
+VAPID_PUBLIC_KEY = (
+    "BJJCgPCrmGRsmUpNDPyVAXqbYGbZEIGVwq2x6lJStFXYvXmDIT4KqfzdlOzfsZx9B-ZXxJHvKBiTx6qcDXzdqHg"
+)
 
 def load_geocode_cache():
     try:
@@ -137,6 +142,36 @@ def geocode_address(address):
         }
 
 
+def load_push_subscriptions():
+    try:
+        with open(PUSH_SUBSCRIPTIONS_FILE, "r") as f:
+            data = json.load(f)
+
+        if isinstance(data, list):
+            return data
+
+        return []
+
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def save_push_subscriptions(subscriptions):
+    os.makedirs(
+        os.path.dirname(PUSH_SUBSCRIPTIONS_FILE),
+        exist_ok=True
+    )
+
+    temp_file = PUSH_SUBSCRIPTIONS_FILE + ".tmp"
+
+    with open(temp_file, "w") as f:
+        json.dump(subscriptions, f, indent=2)
+
+    os.replace(
+        temp_file,
+        PUSH_SUBSCRIPTIONS_FILE
+    )
+
 @app.after_request
 def add_headers(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
@@ -198,6 +233,81 @@ def health():
         ).isoformat()
     })
 
+
+@app.route("/api/push/public-key")
+def push_public_key():
+    return jsonify({
+        "publicKey": VAPID_PUBLIC_KEY
+    })
+
+
+@app.route("/api/push/subscribe", methods=["POST"])
+def push_subscribe():
+    subscription = request.get_json(silent=True)
+
+    if not subscription:
+        return jsonify({
+            "success": False,
+            "error": "Missing subscription"
+        }), 400
+
+    endpoint = subscription.get("endpoint")
+    keys = subscription.get("keys", {})
+
+    if (
+        not endpoint
+        or not keys.get("p256dh")
+        or not keys.get("auth")
+    ):
+        return jsonify({
+            "success": False,
+            "error": "Invalid subscription"
+        }), 400
+
+    subscriptions = load_push_subscriptions()
+
+    subscriptions = [
+        item
+        for item in subscriptions
+        if item.get("endpoint") != endpoint
+    ]
+
+    subscriptions.append(subscription)
+
+    save_push_subscriptions(subscriptions)
+
+    return jsonify({
+        "success": True,
+        "subscriptions": len(subscriptions)
+    })
+
+
+@app.route("/api/push/unsubscribe", methods=["POST"])
+def push_unsubscribe():
+    payload = request.get_json(silent=True) or {}
+
+    endpoint = payload.get("endpoint")
+
+    if not endpoint:
+        return jsonify({
+            "success": False,
+            "error": "Missing endpoint"
+        }), 400
+
+    subscriptions = load_push_subscriptions()
+
+    subscriptions = [
+        item
+        for item in subscriptions
+        if item.get("endpoint") != endpoint
+    ]
+
+    save_push_subscriptions(subscriptions)
+
+    return jsonify({
+        "success": True,
+        "subscriptions": len(subscriptions)
+    })
 
 @app.route("/api/incidents")
 def incidents():
