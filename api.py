@@ -16,6 +16,7 @@ GEOCODE_URL = (
 GEOCODE_CACHE_FILE = "/var/lib/lfd-bot/geocode_cache.json"
 
 PUSH_SUBSCRIPTIONS_FILE = "/var/lib/lfd-bot/push_subscriptions.json"
+PUSH_PREFERENCES_FILE = "/var/lib/lfd-bot/push_preferences.json"
 
 VAPID_PUBLIC_KEY = (
     "BJJCgPCrmGRsmUpNDPyVAXqbYGbZEIGVwq2x6lJStFXYvXmDIT4KqfzdlOzfsZx9B-ZXxJHvKBiTx6qcDXzdqHg"
@@ -172,6 +173,36 @@ def save_push_subscriptions(subscriptions):
         PUSH_SUBSCRIPTIONS_FILE
     )
 
+def load_push_preferences():
+    try:
+        with open(PUSH_PREFERENCES_FILE, "r") as f:
+            data = json.load(f)
+
+        if isinstance(data, dict):
+            return data
+
+        return {}
+
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def save_push_preferences(preferences):
+    os.makedirs(
+        os.path.dirname(PUSH_PREFERENCES_FILE),
+        exist_ok=True
+    )
+
+    temp_file = PUSH_PREFERENCES_FILE + ".tmp"
+
+    with open(temp_file, "w") as f:
+        json.dump(preferences, f, indent=2)
+
+    os.replace(
+        temp_file,
+        PUSH_PREFERENCES_FILE
+    )
+
 @app.after_request
 def add_headers(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
@@ -304,9 +335,95 @@ def push_unsubscribe():
 
     save_push_subscriptions(subscriptions)
 
+    all_preferences = load_push_preferences()
+
+    if endpoint in all_preferences:
+        del all_preferences[endpoint]
+        save_push_preferences(all_preferences)
+
     return jsonify({
         "success": True,
         "subscriptions": len(subscriptions)
+    })
+
+@app.route("/api/push/preferences", methods=["POST"])
+def push_preferences():
+    payload = request.get_json(silent=True) or {}
+
+    endpoint = payload.get("endpoint")
+    preferences = payload.get("preferences")
+
+    if not endpoint:
+        return jsonify({
+            "success": False,
+            "error": "Missing endpoint"
+        }), 400
+
+    if not isinstance(preferences, dict):
+        return jsonify({
+            "success": False,
+            "error": "Missing preferences"
+        }), 400
+
+    allowed_keys = {
+        "all_incidents",
+        "structure_fires",
+        "other_fires",
+        "vehicle_fires",
+        "electrical_utility",
+        "hazmat",
+        "rescue",
+        "special",
+        "medical"
+    }
+
+    cleaned = {}
+
+    for key in allowed_keys:
+        cleaned[key] = bool(preferences.get(key, False))
+
+    all_preferences = load_push_preferences()
+
+    all_preferences[endpoint] = cleaned
+
+    save_push_preferences(all_preferences)
+
+    return jsonify({
+        "success": True,
+        "preferences": cleaned
+    })
+
+
+@app.route("/api/push/preferences", methods=["GET"])
+def get_push_preferences():
+    endpoint = request.args.get("endpoint", "")
+
+    if not endpoint:
+        return jsonify({
+            "success": False,
+            "error": "Missing endpoint"
+        }), 400
+
+    all_preferences = load_push_preferences()
+
+    saved = all_preferences.get(endpoint)
+
+    if saved is None:
+        saved = {
+            "all_incidents": False,
+            "structure_fires": True,
+            "other_fires": True,
+            "vehicle_fires": True,
+            "electrical_utility": True,
+            "hazmat": True,
+            "rescue": True,
+            "special": True,
+            "medical": False
+        }
+
+    return jsonify({
+        "success": True,
+        "preferences": saved
     })
 
 @app.route("/api/incidents")

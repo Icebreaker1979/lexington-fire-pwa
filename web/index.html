@@ -2,12 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0f172a">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="theme-color"
+    content="#0f172a"
+  >
 
   <title>Lexington Fire Incidents</title>
 
-  <link rel="manifest" href="/manifest.json">
+  <link
+    rel="manifest"
+    href="/manifest.json"
+  >
 
   <link
     rel="apple-touch-icon"
@@ -60,6 +71,11 @@
 
     button {
       cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: default;
+      opacity: .55;
     }
 
     .refresh-button {
@@ -123,10 +139,110 @@
       color: #cbd5e1;
     }
 
+    .settings-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
     .push-status {
       margin-top: 6px;
       font-size: 12px;
       color: #94a3b8;
+    }
+
+    #preferencesButton {
+      display: none;
+    }
+
+    .preference-panel {
+      display: none;
+
+      margin-top: 12px;
+      padding: 10px;
+      padding-bottom: 14px;
+
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+
+      max-height: 55vh;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .preference-panel.visible {
+      display: block;
+    }
+
+    .preference-title {
+      font-size: 15px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .preference-help {
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .preference-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      min-height: 31px;
+      font-size: 13px;
+
+      border-bottom: 1px solid #334155;
+    }
+
+    .preference-item:last-of-type {
+      border-bottom: 0;
+    }
+
+    .preference-item.master {
+      font-weight: bold;
+      color: #f8fafc;
+      margin-bottom: 4px;
+    }
+
+    .preference-item input {
+      width: 17px;
+      height: 17px;
+      flex: 0 0 auto;
+    }
+
+    .save-preferences {
+      width: 100%;
+      margin-top: 10px;
+
+      border: 0;
+      border-radius: 8px;
+
+      padding: 11px 12px;
+
+      background: #475569;
+      color: white;
+      font-weight: bold;
+
+      position: sticky;
+      bottom: 0;
+
+      z-index: 5;
+
+      box-shadow:
+        0 -8px 12px rgba(30, 41, 59, .95);
+    }
+
+    #preferenceStatus {
+      margin-top: 7px;
+      font-size: 11px;
+      color: #94a3b8;
+      text-align: center;
     }
 
     main {
@@ -143,11 +259,25 @@
       border-left: 6px solid #64748b;
     }
 
-    .incident.medical { border-left-color: #3b82f6; }
-    .incident.fire    { border-left-color: #ef4444; }
-    .incident.hazmat  { border-left-color: #eab308; }
-    .incident.rescue  { border-left-color: #f97316; }
-    .incident.special { border-left-color: #a855f7; }
+    .incident.medical {
+      border-left-color: #3b82f6;
+    }
+
+    .incident.fire {
+      border-left-color: #ef4444;
+    }
+
+    .incident.hazmat {
+      border-left-color: #eab308;
+    }
+
+    .incident.rescue {
+      border-left-color: #f97316;
+    }
+
+    .incident.special {
+      border-left-color: #a855f7;
+    }
 
     .incident-header {
       padding: 14px;
@@ -221,33 +351,44 @@
       z-index: 1500;
       top: 215px;
       right: 12px;
+
       display: flex;
       flex-direction: column;
       gap: 8px;
+
       pointer-events: none;
     }
 
     .map-controls button {
       pointer-events: auto;
+
       border: 0;
       border-radius: 10px;
+
       padding: 10px 12px;
+
       background: rgba(15, 23, 42, .95);
       color: white;
+
       box-shadow: 0 2px 8px rgba(0,0,0,.35);
     }
 
     .map-filter-panel {
       position: fixed;
       z-index: 1500;
+
       top: 215px;
       left: 12px;
+
       background: rgba(15, 23, 42, .96);
       border: 1px solid #334155;
       border-radius: 12px;
+
       padding: 10px;
+
       display: none;
       min-width: 155px;
+
       box-shadow: 0 2px 10px rgba(0,0,0,.35);
     }
 
@@ -264,10 +405,13 @@
     .map-filter-choice {
       display: block;
       width: 100%;
+
       text-align: left;
+
       border: 0;
       padding: 8px;
       border-radius: 7px;
+
       background: transparent;
       color: white;
     }
@@ -279,37 +423,66 @@
     .map-marker {
       width: 38px;
       height: 38px;
+
       display: flex;
       align-items: center;
       justify-content: center;
+
       border-radius: 50%;
       border: 4px solid white;
+
       font-size: 18px;
+
       box-shadow: 0 2px 8px rgba(0,0,0,.5);
+
       position: relative;
     }
 
-    .map-marker.medical { background: #2563eb; }
-    .map-marker.fire    { background: #dc2626; }
-    .map-marker.hazmat  { background: #ca8a04; }
-    .map-marker.rescue  { background: #ea580c; }
-    .map-marker.special { background: #9333ea; }
-    .map-marker.other   { background: #334155; }
+    .map-marker.medical {
+      background: #2563eb;
+    }
+
+    .map-marker.fire {
+      background: #dc2626;
+    }
+
+    .map-marker.hazmat {
+      background: #ca8a04;
+    }
+
+    .map-marker.rescue {
+      background: #ea580c;
+    }
+
+    .map-marker.special {
+      background: #9333ea;
+    }
+
+    .map-marker.other {
+      background: #334155;
+    }
 
     .multi-count {
       position: absolute;
+
       top: -8px;
       right: -8px;
+
       width: 20px;
       height: 20px;
+
       border-radius: 50%;
+
       background: white;
       color: #111827;
+
       font-size: 11px;
       font-weight: bold;
+
       display: flex;
       align-items: center;
       justify-content: center;
+
       border: 2px solid #111827;
     }
 
@@ -342,29 +515,43 @@
     .location-marker {
       width: 18px;
       height: 18px;
+
       border-radius: 50%;
+
       background: #2563eb;
+
       border: 4px solid white;
-      box-shadow: 0 0 0 4px rgba(37, 99, 235, .25);
+
+      box-shadow:
+        0 0 0 4px rgba(37,99,235,.25);
     }
 
     nav {
       position: fixed;
+
       left: 0;
       right: 0;
       bottom: 0;
+
       height: 64px;
+
       z-index: 2000;
+
       display: flex;
+
       background: #111827;
+
       border-top: 1px solid #334155;
     }
 
     .nav-button {
       flex: 1;
+
       border: 0;
+
       background: transparent;
       color: #94a3b8;
+
       font-size: 13px;
     }
 
@@ -387,60 +574,152 @@
   </style>
 </head>
 
+
 <body>
+
 
 <div id="incidentScreen">
 
+
 <header>
+
   <div class="top-row">
+
     <div>
-      <h1>Lexington Fire Incidents</h1>
-      <div id="status">Loading...</div>
+
+      <h1>
+        Lexington Fire Incidents
+      </h1>
+
+      <div id="status">
+        Loading...
+      </div>
+
     </div>
-
-    <button class="refresh-button" onclick="loadIncidents(true)">
-      Refresh
-    </button>
-  </div>
-
-  <div class="summary">
-    <div class="summary-box">
-      <span class="summary-number" id="totalCount">0</span>
-      <span class="summary-label">Total</span>
-    </div>
-
-    <div class="summary-box">
-      <span class="summary-number" id="fireCount">0</span>
-      <span class="summary-label">Fire / Rescue</span>
-    </div>
-
-    <div class="summary-box">
-      <span class="summary-number" id="medicalCount">0</span>
-      <span class="summary-label">Medical</span>
-    </div>
-  </div>
-
-  <div class="filters">
-    <button class="filter-button active" data-filter="all">All</button>
-    <button class="filter-button" data-filter="fire">Fire & Rescue</button>
-    <button class="filter-button" data-filter="medical">Medical</button>
-  </div>
-
-  <div class="settings-row">
-    <label>
-      <input type="checkbox" id="hideMedical">
-      Hide medical incidents
-    </label>
-
-    <br><br>
 
     <button
-      id="pushButton"
       class="refresh-button"
-      onclick="togglePushNotifications()"
+      onclick="loadIncidents(true)"
     >
-      Enable Notifications
+      Refresh
     </button>
+
+  </div>
+
+
+  <div class="summary">
+
+    <div class="summary-box">
+
+      <span
+        class="summary-number"
+        id="totalCount"
+      >
+        0
+      </span>
+
+      <span class="summary-label">
+        Total
+      </span>
+
+    </div>
+
+
+    <div class="summary-box">
+
+      <span
+        class="summary-number"
+        id="fireCount"
+      >
+        0
+      </span>
+
+      <span class="summary-label">
+        Fire / Rescue
+      </span>
+
+    </div>
+
+
+    <div class="summary-box">
+
+      <span
+        class="summary-number"
+        id="medicalCount"
+      >
+        0
+      </span>
+
+      <span class="summary-label">
+        Medical
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <div class="filters">
+
+    <button
+      class="filter-button active"
+      data-filter="all"
+    >
+      All
+    </button>
+
+    <button
+      class="filter-button"
+      data-filter="fire"
+    >
+      Fire & Rescue
+    </button>
+
+    <button
+      class="filter-button"
+      data-filter="medical"
+    >
+      Medical
+    </button>
+
+  </div>
+
+
+  <div class="settings-row">
+
+    <label>
+
+      <input
+        type="checkbox"
+        id="hideMedical"
+      >
+
+      Hide medical incidents
+
+    </label>
+
+
+    <div class="settings-actions">
+
+      <button
+        id="pushButton"
+        class="refresh-button"
+        onclick="togglePushNotifications()"
+      >
+        Enable Notifications
+      </button>
+
+
+      <button
+        id="preferencesButton"
+        class="refresh-button"
+        onclick="togglePreferencePanel()"
+      >
+        Notification Preferences
+      </button>
+
+    </div>
+
 
     <div
       id="pushStatus"
@@ -448,70 +727,269 @@
     >
       Checking notification status...
     </div>
+
+
+    <div
+      id="preferencePanel"
+      class="preference-panel"
+    >
+
+      <div class="preference-title">
+        🔔 Notification Preferences
+      </div>
+
+
+      <div class="preference-help">
+        Choose which types of incidents should send a push notification to this device.
+      </div>
+
+
+      <label class="preference-item master">
+
+        <input
+          type="checkbox"
+          id="prefAll"
+          onchange="handleAllIncidentsChange()"
+        >
+
+        All incidents
+
+      </label>
+
+
+      <label class="preference-item">
+
+        <input
+          type="checkbox"
+          id="prefStructure"
+        >
+
+        🏠🔥 Structure Fires
+
+      </label>
+
+
+      <label class="preference-item">
+
+        <input
+          type="checkbox"
+          id="prefOtherFire"
+        >
+
+        🔥 Other Fires
+
+      </label>
+
+
+      <label class="preference-item">
+
+        <input
+          type="checkbox"
+          id="prefVehicle"
+        >
+
+        🚗🔥 Vehicle Fires
+
+      </label>
+
+
+      <label class="preference-item">
+
+        <input
+          type="checkbox"
+          id="prefElectrical"
+        >
+
+        ⚡ Electrical / Utility
+
+      </label>
+
+
+      <label class="preference-item">
+
+        <input
+          type="checkbox"
+          id="prefHazmat"
+        >
+
+        ☣️ HazMat
+
+      </label>
+
+
+      <label class="preference-item">
+
+        <input
+          type="checkbox"
+          id="prefRescue"
+        >
+
+        🆘 Rescue
+
+      </label>
+
+
+      <label class="preference-item">
+
+        <input
+          type="checkbox"
+          id="prefSpecial"
+        >
+
+        🚨 Major / Special / Other
+
+      </label>
+
+
+      <label class="preference-item">
+
+        <input
+          type="checkbox"
+          id="prefMedical"
+        >
+
+        🚑 Medical
+
+      </label>
+
+
+      <button
+        class="save-preferences"
+        onclick="savePushPreferences()"
+      >
+        Save Notification Preferences
+      </button>
+
+
+      <div id="preferenceStatus"></div>
+
+    </div>
+
   </div>
+
 </header>
+
 
 <main id="incidents"></main>
 
+
 </div>
 
+
 <div id="mapScreen">
+
   <div id="map"></div>
 
-  <div class="map-filter-panel" id="mapFilterPanel">
-    <div class="map-filter-title">Map Filter</div>
 
-    <button class="map-filter-choice active" data-map-filter="all">
+  <div
+    class="map-filter-panel"
+    id="mapFilterPanel"
+  >
+
+    <div class="map-filter-title">
+      Map Filter
+    </div>
+
+
+    <button
+      class="map-filter-choice active"
+      data-map-filter="all"
+    >
       All incidents
     </button>
 
-    <button class="map-filter-choice" data-map-filter="fire">
+
+    <button
+      class="map-filter-choice"
+      data-map-filter="fire"
+    >
       Fire / Rescue
     </button>
 
-    <button class="map-filter-choice" data-map-filter="medical">
+
+    <button
+      class="map-filter-choice"
+      data-map-filter="medical"
+    >
       Medical
     </button>
+
   </div>
+
 
   <div class="map-controls">
-    <button onclick="toggleMapFilter()">☰ Filter</button>
-    <button onclick="showMyLocation()">◎ My Location</button>
+
+    <button onclick="toggleMapFilter()">
+      ☰ Filter
+    </button>
+
+
+    <button onclick="showMyLocation()">
+      ◎ My Location
+    </button>
+
   </div>
+
 </div>
 
+
 <nav>
+
   <button
     class="nav-button active"
     id="incidentsNav"
     onclick="showScreen('incidents')"
   >
-    <span class="nav-icon">🚒</span>
+
+    <span class="nav-icon">
+      🚒
+    </span>
+
     Incidents
+
   </button>
+
 
   <button
     class="nav-button"
     id="mapNav"
     onclick="showScreen('map')"
   >
-    <span class="nav-icon">🗺️</span>
+
+    <span class="nav-icon">
+      🗺️
+    </span>
+
     Map
+
   </button>
+
 </nav>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+></script>
+
 
 <script>
+
 const API_URL = "/api/incidents";
 
+
 let incidents = [];
+
 let currentFilter = "all";
+
 let mapFilter = "all";
+
 let lastUpdated = null;
 
+
 let map = null;
+
 let markerLayer = null;
+
 let userLocationMarker = null;
 
 
@@ -523,15 +1001,18 @@ const FIRE_CODES = new Set([
   "FELF","FTRN","FWID","FUTL"
 ]);
 
+
 const HAZMAT_CODES = new Set([
   "FHMC","FFHMR","FHCL","FMERC",
   "FHGEO","FBERTH","FSCU"
 ]);
 
+
 const RESCUE_CODES = new Set([
   "FCOL","FCSR","FDVR","FROP",
   "FTRE","FLAR","FBERTR","FVAJ"
 ]);
+
 
 const SPECIAL_CODES = new Set([
   "FEXP","FBOT","FBWD",
@@ -542,273 +1023,978 @@ const SPECIAL_CODES = new Set([
 
 
 function getCategory(code) {
-  if (code === "MED") return "medical";
-  if (FIRE_CODES.has(code)) return "fire";
-  if (HAZMAT_CODES.has(code)) return "hazmat";
-  if (RESCUE_CODES.has(code)) return "rescue";
-  if (SPECIAL_CODES.has(code)) return "special";
+
+  if (code === "MED")
+    return "medical";
+
+  if (FIRE_CODES.has(code))
+    return "fire";
+
+  if (HAZMAT_CODES.has(code))
+    return "hazmat";
+
+  if (RESCUE_CODES.has(code))
+    return "rescue";
+
+  if (SPECIAL_CODES.has(code))
+    return "special";
+
   return "other";
 }
 
 
 function getEmoji(code) {
-  if (code === "MED") return "🚑";
-  if (["FSTR","FSTRW"].includes(code)) return "🏠🔥";
-  if (["FVEH","FVNS","FVLA"].includes(code)) return "🚗🔥";
-  if (["FELF","FTRN","FWID","FUTL"].includes(code)) return "⚡";
-  if (HAZMAT_CODES.has(code)) return "☣️";
-  if (RESCUE_CODES.has(code)) return "🆘";
-  if (["FEXP","FBWD"].includes(code)) return "💥";
-  if (code === "FBOT") return "🧨";
-  if (["FAA1","FAA2","FAA3"].includes(code)) return "✈️";
-  if (SPECIAL_CODES.has(code)) return "🚨";
+
+  if (code === "MED")
+    return "🚑";
+
+
+  if (
+    ["FSTR","FSTRW"]
+      .includes(code)
+  )
+    return "🏠🔥";
+
+
+  if (
+    ["FVEH","FVNS","FVLA"]
+      .includes(code)
+  )
+    return "🚗🔥";
+
+
+  if (
+    [
+      "FELF",
+      "FTRN",
+      "FWID",
+      "FUTL"
+    ].includes(code)
+  )
+    return "⚡";
+
+
+  if (HAZMAT_CODES.has(code))
+    return "☣️";
+
+
+  if (RESCUE_CODES.has(code))
+    return "🆘";
+
+
+  if (
+    ["FEXP","FBWD"]
+      .includes(code)
+  )
+    return "💥";
+
+
+  if (code === "FBOT")
+    return "🧨";
+
+
+  if (
+    ["FAA1","FAA2","FAA3"]
+      .includes(code)
+  )
+    return "✈️";
+
+
+  if (SPECIAL_CODES.has(code))
+    return "🚨";
+
+
   return "🚒";
 }
 
 
-function urlBase64ToUint8Array(base64String) {
+function urlBase64ToUint8Array(
+  base64String
+) {
+
   const padding =
-    "=".repeat((4 - base64String.length % 4) % 4);
+    "=".repeat(
+      (
+        4 -
+        base64String.length % 4
+      ) % 4
+    );
+
 
   const base64 =
-    (base64String + padding)
+    (
+      base64String +
+      padding
+    )
       .replace(/-/g, "+")
       .replace(/_/g, "/");
+
 
   const rawData =
     window.atob(base64);
 
+
   return Uint8Array.from(
+
     [...rawData].map(
-      char => char.charCodeAt(0)
+
+      char =>
+        char.charCodeAt(0)
+
     )
+
   );
 }
 
 
-async function updatePushStatus() {
-  const button =
-    document.getElementById("pushButton");
+function setPreferenceControlsDisabled(
+  disabled
+) {
+
+  const ids = [
+    "prefStructure",
+    "prefOtherFire",
+    "prefVehicle",
+    "prefElectrical",
+    "prefHazmat",
+    "prefRescue",
+    "prefSpecial",
+    "prefMedical"
+  ];
+
+
+  ids.forEach(id => {
+
+    document
+      .getElementById(id)
+      .disabled =
+        disabled;
+
+  });
+}
+
+
+function handleAllIncidentsChange() {
+
+  const all =
+    document
+      .getElementById(
+        "prefAll"
+      )
+      .checked;
+
+
+  setPreferenceControlsDisabled(
+    all
+  );
+}
+
+
+async function getCurrentPushSubscription() {
+
+  const registration =
+    await navigator
+      .serviceWorker
+      .ready;
+
+
+  return registration
+    .pushManager
+    .getSubscription();
+}
+
+
+async function loadPushPreferences() {
+
+  const subscription =
+    await getCurrentPushSubscription();
+
+
+  if (!subscription) {
+
+    return false;
+
+  }
+
 
   const status =
-    document.getElementById("pushStatus");
+    document.getElementById(
+      "preferenceStatus"
+    );
+
+
+  status.textContent =
+    "Loading preferences...";
+
+
+  try {
+
+    const endpoint =
+      encodeURIComponent(
+        subscription.endpoint
+      );
+
+
+    const response =
+      await fetch(
+        `/api/push/preferences?endpoint=${endpoint}`,
+        {
+          cache:
+            "no-store"
+        }
+      );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        "Could not load preferences."
+      );
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    const prefs =
+      data.preferences;
+
+
+    document
+      .getElementById(
+        "prefAll"
+      )
+      .checked =
+        !!prefs.all_incidents;
+
+
+    document
+      .getElementById(
+        "prefStructure"
+      )
+      .checked =
+        !!prefs.structure_fires;
+
+
+    document
+      .getElementById(
+        "prefOtherFire"
+      )
+      .checked =
+        !!prefs.other_fires;
+
+
+    document
+      .getElementById(
+        "prefVehicle"
+      )
+      .checked =
+        !!prefs.vehicle_fires;
+
+
+    document
+      .getElementById(
+        "prefElectrical"
+      )
+      .checked =
+        !!prefs.electrical_utility;
+
+
+    document
+      .getElementById(
+        "prefHazmat"
+      )
+      .checked =
+        !!prefs.hazmat;
+
+
+    document
+      .getElementById(
+        "prefRescue"
+      )
+      .checked =
+        !!prefs.rescue;
+
+
+    document
+      .getElementById(
+        "prefSpecial"
+      )
+      .checked =
+        !!prefs.special;
+
+
+    document
+      .getElementById(
+        "prefMedical"
+      )
+      .checked =
+        !!prefs.medical;
+
+
+    handleAllIncidentsChange();
+
+
+    status.textContent = "";
+
+
+    return true;
+
+  } catch (error) {
+
+    console.error(error);
+
+
+    status.textContent =
+      "Unable to load preferences.";
+
+
+    return false;
+  }
+}
+
+
+async function togglePreferencePanel() {
+
+  const panel =
+    document.getElementById(
+      "preferencePanel"
+    );
+
 
   if (
-    !("serviceWorker" in navigator) ||
-    !("PushManager" in window)
+    panel.classList.contains(
+      "visible"
+    )
   ) {
-    button.disabled = true;
+
+    panel.classList.remove(
+      "visible"
+    );
+
+    return;
+
+  }
+
+
+  const loaded =
+    await loadPushPreferences();
+
+
+  if (loaded) {
+
+    panel.classList.add(
+      "visible"
+    );
+
+  }
+}
+
+
+async function savePushPreferences() {
+
+  const subscription =
+    await getCurrentPushSubscription();
+
+
+  if (!subscription) {
+
+    alert(
+      "Enable notifications before saving preferences."
+    );
+
+    return;
+
+  }
+
+
+  const status =
+    document.getElementById(
+      "preferenceStatus"
+    );
+
+
+  status.textContent =
+    "Saving...";
+
+
+  const preferences = {
+
+    all_incidents:
+      document
+        .getElementById(
+          "prefAll"
+        )
+        .checked,
+
+
+    structure_fires:
+      document
+        .getElementById(
+          "prefStructure"
+        )
+        .checked,
+
+
+    other_fires:
+      document
+        .getElementById(
+          "prefOtherFire"
+        )
+        .checked,
+
+
+    vehicle_fires:
+      document
+        .getElementById(
+          "prefVehicle"
+        )
+        .checked,
+
+
+    electrical_utility:
+      document
+        .getElementById(
+          "prefElectrical"
+        )
+        .checked,
+
+
+    hazmat:
+      document
+        .getElementById(
+          "prefHazmat"
+        )
+        .checked,
+
+
+    rescue:
+      document
+        .getElementById(
+          "prefRescue"
+        )
+        .checked,
+
+
+    special:
+      document
+        .getElementById(
+          "prefSpecial"
+        )
+        .checked,
+
+
+    medical:
+      document
+        .getElementById(
+          "prefMedical"
+        )
+        .checked
+  };
+
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/push/preferences",
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              endpoint:
+                subscription.endpoint,
+
+              preferences:
+                preferences
+            })
+        }
+      );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        "Could not save preferences."
+      );
+
+    }
+
+
+    status.textContent =
+      "✓ Preferences saved.";
+
+
+    setTimeout(() => {
+
+      document
+        .getElementById(
+          "preferencePanel"
+        )
+        .classList
+        .remove(
+          "visible"
+        );
+
+
+      status.textContent = "";
+
+    }, 800);
+
+  } catch (error) {
+
+    console.error(error);
+
+
+    status.textContent =
+      "Unable to save preferences.";
+
+  }
+}
+
+
+async function updatePushStatus() {
+
+  const button =
+    document.getElementById(
+      "pushButton"
+    );
+
+
+  const preferencesButton =
+    document.getElementById(
+      "preferencesButton"
+    );
+
+
+  const status =
+    document.getElementById(
+      "pushStatus"
+    );
+
+
+  const panel =
+    document.getElementById(
+      "preferencePanel"
+    );
+
+
+  if (
+    !(
+      "serviceWorker"
+      in navigator
+    )
+    ||
+    !(
+      "PushManager"
+      in window
+    )
+  ) {
+
+    button.disabled =
+      true;
+
+
+    preferencesButton
+      .style
+      .display =
+        "none";
+
+
     status.textContent =
       "Push notifications are not supported.";
+
+
     return;
   }
 
+
   try {
-    const registration =
-      await navigator.serviceWorker.ready;
 
     const subscription =
-      await registration.pushManager.getSubscription();
+      await getCurrentPushSubscription();
+
 
     if (subscription) {
+
       button.textContent =
         "Disable Notifications";
 
+
       status.textContent =
         "Notifications enabled.";
+
+
+      preferencesButton
+        .style
+        .display =
+          "inline-block";
+
+
+      await loadPushPreferences();
+
+
+      panel
+        .classList
+        .remove(
+          "visible"
+        );
+
     } else {
+
       button.textContent =
         "Enable Notifications";
 
-      if (Notification.permission === "denied") {
+
+      preferencesButton
+        .style
+        .display =
+          "none";
+
+
+      panel
+        .classList
+        .remove(
+          "visible"
+        );
+
+
+      if (
+        Notification.permission ===
+        "denied"
+      ) {
+
         status.textContent =
           "Notifications are blocked in Android settings.";
+
       } else {
+
         status.textContent =
           "Notifications disabled.";
+
       }
     }
 
   } catch (error) {
+
     console.error(error);
+
 
     status.textContent =
       "Unable to check notification status.";
+
   }
 }
 
 
 async function togglePushNotifications() {
+
   const button =
-    document.getElementById("pushButton");
+    document.getElementById(
+      "pushButton"
+    );
+
 
   const status =
-    document.getElementById("pushStatus");
+    document.getElementById(
+      "pushStatus"
+    );
+
 
   try {
-    button.disabled = true;
+
+    button.disabled =
+      true;
+
 
     const registration =
-      await navigator.serviceWorker.ready;
+      await navigator
+        .serviceWorker
+        .ready;
+
 
     const existing =
-      await registration.pushManager.getSubscription();
+      await registration
+        .pushManager
+        .getSubscription();
+
 
     if (existing) {
+
       await fetch(
         "/api/push/unsubscribe",
         {
-          method: "POST",
+          method:
+            "POST",
+
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type":
+              "application/json"
           },
-          body: JSON.stringify({
-            endpoint: existing.endpoint
-          })
+
+          body:
+            JSON.stringify({
+              endpoint:
+                existing.endpoint
+            })
         }
       );
 
+
       await existing.unsubscribe();
 
-      status.textContent =
-        "Notifications disabled.";
 
       await updatePushStatus();
 
+
       return;
     }
 
-    if (Notification.permission === "denied") {
+
+    if (
+      Notification.permission ===
+      "denied"
+    ) {
+
       alert(
         "Notifications are blocked for Lexington Fire. " +
-        "Enable notifications in Android app settings."
+        "Enable them in Android app settings."
       );
+
 
       return;
     }
 
-    const permission =
-      await Notification.requestPermission();
 
-    if (permission !== "granted") {
+    const permission =
+      await Notification
+        .requestPermission();
+
+
+    if (
+      permission !==
+      "granted"
+    ) {
+
       status.textContent =
         "Notification permission was not granted.";
 
+
       return;
     }
+
 
     status.textContent =
       "Enabling notifications...";
 
+
     const response =
-      await fetch("/api/push/public-key");
+      await fetch(
+        "/api/push/public-key"
+      );
+
 
     if (!response.ok) {
+
       throw new Error(
         "Could not retrieve VAPID public key."
       );
+
     }
+
 
     const data =
       await response.json();
+
 
     const applicationServerKey =
       urlBase64ToUint8Array(
         data.publicKey
       );
 
+
     const subscription =
-      await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey
-      });
+      await registration
+        .pushManager
+        .subscribe({
+          userVisibleOnly:
+            true,
+
+          applicationServerKey:
+            applicationServerKey
+        });
+
 
     const saveResponse =
       await fetch(
         "/api/push/subscribe",
         {
-          method: "POST",
+          method:
+            "POST",
+
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type":
+              "application/json"
           },
-          body: JSON.stringify(
-            subscription.toJSON()
-          )
+
+          body:
+            JSON.stringify(
+              subscription.toJSON()
+            )
         }
       );
 
+
     if (!saveResponse.ok) {
+
       throw new Error(
         "Could not save push subscription."
       );
+
     }
 
-    status.textContent =
-      "Notifications enabled.";
 
     await updatePushStatus();
 
   } catch (error) {
+
     console.error(error);
+
 
     status.textContent =
       "Unable to enable notifications.";
 
+
     alert(
-      "Could not enable notifications. " +
-      "Check the browser console or server logs."
+      "Could not enable notifications."
     );
 
   } finally {
-    button.disabled = false;
+
+    button.disabled =
+      false;
+
   }
 }
 
 
 function getFilteredIncidents() {
+
   const hideMedical =
-    document.getElementById("hideMedical").checked;
+    document
+      .getElementById(
+        "hideMedical"
+      )
+      .checked;
 
-  return incidents.filter(inc => {
-    if (hideMedical && inc.code === "MED")
-      return false;
 
-    if (currentFilter === "medical")
-      return inc.code === "MED";
+  return incidents.filter(
+    inc => {
 
-    if (currentFilter === "fire")
-      return inc.code !== "MED";
+      if (
+        hideMedical &&
+        inc.code === "MED"
+      )
+        return false;
 
-    return true;
-  });
+
+      if (
+        currentFilter ===
+        "medical"
+      )
+        return (
+          inc.code ===
+          "MED"
+        );
+
+
+      if (
+        currentFilter ===
+        "fire"
+      )
+        return (
+          inc.code !==
+          "MED"
+        );
+
+
+      return true;
+    }
+  );
 }
 
 
 function getMapFilteredIncidents() {
+
   const hideMedical =
-    document.getElementById("hideMedical").checked;
+    document
+      .getElementById(
+        "hideMedical"
+      )
+      .checked;
 
-  return incidents.filter(inc => {
-    if (hideMedical && inc.code === "MED")
-      return false;
 
-    if (mapFilter === "medical")
-      return inc.code === "MED";
+  return incidents.filter(
+    inc => {
 
-    if (mapFilter === "fire")
-      return inc.code !== "MED";
+      if (
+        hideMedical &&
+        inc.code === "MED"
+      )
+        return false;
 
-    return true;
-  });
+
+      if (
+        mapFilter ===
+        "medical"
+      )
+        return (
+          inc.code ===
+          "MED"
+        );
+
+
+      if (
+        mapFilter ===
+        "fire"
+      )
+        return (
+          inc.code !==
+          "MED"
+        );
+
+
+      return true;
+    }
+  );
 }
 
 
 function renderIncident(inc) {
-  const category = getCategory(inc.code);
+
+  const category =
+    getCategory(
+      inc.code
+    );
+
 
   let mapButton = "";
 
-  if (inc.latitude && inc.longitude) {
+
+  if (
+    inc.latitude &&
+    inc.longitude
+  ) {
+
     mapButton = `
       <button
         class="map-button"
@@ -819,9 +2005,12 @@ function renderIncident(inc) {
     `;
   }
 
+
   return `
-    <div class="incident ${category}"
-         onclick="this.classList.toggle('open')">
+    <div
+      class="incident ${category}"
+      onclick="this.classList.toggle('open')"
+    >
 
       <div class="incident-header">
 
@@ -834,8 +2023,15 @@ function renderIncident(inc) {
         </div>
 
         <div class="badges">
-          <span class="badge">${inc.code}</span>
-          <span class="badge">Incident #${inc.id}</span>
+
+          <span class="badge">
+            ${inc.code}
+          </span>
+
+          <span class="badge">
+            Incident #${inc.id}
+          </span>
+
         </div>
 
       </div>
@@ -865,95 +2061,184 @@ function renderIncident(inc) {
         ${mapButton}
 
       </div>
+
     </div>
   `;
 }
 
 
 function render() {
+
   const container =
-    document.getElementById("incidents");
+    document.getElementById(
+      "incidents"
+    );
+
 
   const filtered =
     getFilteredIncidents();
 
+
   if (!filtered.length) {
+
     container.innerHTML =
       '<div class="empty">No incidents match this filter.</div>';
+
+
     return;
   }
 
+
   container.innerHTML =
-    filtered.map(renderIncident).join("");
+    filtered
+      .map(
+        renderIncident
+      )
+      .join("");
 }
 
 
 function updateSummary() {
-  const total = incidents.length;
+
+  const total =
+    incidents.length;
+
 
   const medical =
-    incidents.filter(i => i.code === "MED").length;
+    incidents.filter(
+      i =>
+        i.code ===
+        "MED"
+    ).length;
 
-  document.getElementById("totalCount").textContent =
-    total;
 
-  document.getElementById("medicalCount").textContent =
-    medical;
+  document
+    .getElementById(
+      "totalCount"
+    )
+    .textContent =
+      total;
 
-  document.getElementById("fireCount").textContent =
-    total - medical;
+
+  document
+    .getElementById(
+      "medicalCount"
+    )
+    .textContent =
+      medical;
+
+
+  document
+    .getElementById(
+      "fireCount"
+    )
+    .textContent =
+      total -
+      medical;
 }
 
 
 function initializeMap() {
+
   if (map)
     return;
 
-  map = L.map("map").setView(
-    [38.0406, -84.5037],
-    12
-  );
+
+  map =
+    L.map(
+      "map"
+    )
+    .setView(
+      [
+        38.0406,
+        -84.5037
+      ],
+      12
+    );
+
 
   L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
-      maxZoom: 19,
-      attribution: "&copy; OpenStreetMap contributors"
+      maxZoom:
+        19,
+
+      attribution:
+        "&copy; OpenStreetMap contributors"
     }
-  ).addTo(map);
+  )
+  .addTo(
+    map
+  );
+
 
   markerLayer =
-    L.layerGroup().addTo(map);
+    L.layerGroup()
+      .addTo(
+        map
+      );
 }
 
 
-function groupIncidentsByLocation(source) {
+function groupIncidentsByLocation(
+  source
+) {
+
   const grouped = {};
 
-  source.forEach(inc => {
-    if (!inc.latitude || !inc.longitude)
-      return;
 
-    const key =
-      `${inc.latitude.toFixed(6)},${inc.longitude.toFixed(6)}`;
+  source.forEach(
+    inc => {
 
-    if (!grouped[key]) {
-      grouped[key] = {
-        latitude: inc.latitude,
-        longitude: inc.longitude,
-        incidents: []
-      };
+      if (
+        !inc.latitude ||
+        !inc.longitude
+      )
+        return;
+
+
+      const key =
+        `${inc.latitude.toFixed(6)},${inc.longitude.toFixed(6)}`;
+
+
+      if (!grouped[key]) {
+
+        grouped[key] = {
+
+          latitude:
+            inc.latitude,
+
+          longitude:
+            inc.longitude,
+
+          incidents:
+            []
+
+        };
+      }
+
+
+      grouped[key]
+        .incidents
+        .push(
+          inc
+        );
+
     }
+  );
 
-    grouped[key].incidents.push(inc);
-  });
 
-  return Object.values(grouped);
+  return Object.values(
+    grouped
+  );
 }
 
 
 function buildPopup(group) {
-  const items = group.incidents;
+
+  const items =
+    group.incidents;
+
 
   let html = `
     <div class="popup-address">
@@ -961,401 +2246,856 @@ function buildPopup(group) {
     </div>
   `;
 
-  if (items.length > 1) {
+
+  if (
+    items.length >
+    1
+  ) {
+
     html += `
       <div class="popup-detail">
-        <strong>${items.length} active incidents at this location</strong>
+        <strong>
+          ${items.length} active incidents at this location
+        </strong>
       </div>
     `;
+
   }
 
-  items.forEach((inc, index) => {
-    if (index > 0)
-      html += `<div class="popup-divider"></div>`;
 
-    html += `
-      <div class="popup-title">
-        ${getEmoji(inc.code)} ${inc.label}
-      </div>
+  items.forEach(
+    (inc, index) => {
 
-      <div class="popup-detail">
-        Incident #${inc.id}
-      </div>
+      if (
+        index >
+        0
+      ) {
 
-      <div class="popup-detail">
-        Alarm: ${inc.alarm || "N/A"}
-      </div>
+        html +=
+          `<div class="popup-divider"></div>`;
 
-      <div class="popup-detail">
-        Enroute: ${inc.enroute || "N/A"}
-      </div>
+      }
 
-      <div class="popup-detail">
-        Arrived: ${inc.arrive || "N/A"}
-      </div>
 
-      <div class="popup-detail">
-        Units: ${inc.apparatus || "N/A"}
-      </div>
-    `;
-  });
+      html += `
+        <div class="popup-title">
+          ${getEmoji(inc.code)} ${inc.label}
+        </div>
+
+        <div class="popup-detail">
+          Incident #${inc.id}
+        </div>
+
+        <div class="popup-detail">
+          Alarm: ${inc.alarm || "N/A"}
+        </div>
+
+        <div class="popup-detail">
+          Enroute: ${inc.enroute || "N/A"}
+        </div>
+
+        <div class="popup-detail">
+          Arrived: ${inc.arrive || "N/A"}
+        </div>
+
+        <div class="popup-detail">
+          Units: ${inc.apparatus || "N/A"}
+        </div>
+      `;
+
+    }
+  );
+
 
   return html;
 }
 
 
 function renderMap() {
+
   initializeMap();
 
-  markerLayer.clearLayers();
+
+  markerLayer
+    .clearLayers();
+
 
   const filtered =
     getMapFilteredIncidents();
 
+
   const groups =
-    groupIncidentsByLocation(filtered);
-
-  const bounds = [];
-
-  groups.forEach(group => {
-    const first =
-      group.incidents[0];
-
-    const category =
-      getCategory(first.code);
-
-    const count =
-      group.incidents.length;
-
-    const icon = L.divIcon({
-      className: "",
-      html: `
-        <div class="map-marker ${category}">
-          ${getEmoji(first.code)}
-          ${count > 1 ? `<div class="multi-count">${count}</div>` : ""}
-        </div>
-      `,
-      iconSize: [38, 38],
-      iconAnchor: [19, 19]
-    });
-
-    const marker = L.marker(
-      [group.latitude, group.longitude],
-      { icon }
+    groupIncidentsByLocation(
+      filtered
     );
 
-    marker.incidentIds =
-      group.incidents.map(i => i.id);
 
-    marker.bindPopup(
-      buildPopup(group),
-      { maxWidth: 300 }
+  const bounds =
+    [];
+
+
+  groups.forEach(
+    group => {
+
+      const first =
+        group.incidents[0];
+
+
+      const category =
+        getCategory(
+          first.code
+        );
+
+
+      const count =
+        group.incidents.length;
+
+
+      const icon =
+        L.divIcon({
+
+          className:
+            "",
+
+          html: `
+            <div class="map-marker ${category}">
+              ${getEmoji(first.code)}
+
+              ${
+                count > 1
+                  ?
+                  `<div class="multi-count">${count}</div>`
+                  :
+                  ""
+              }
+
+            </div>
+          `,
+
+          iconSize:
+            [38, 38],
+
+          iconAnchor:
+            [19, 19]
+
+        });
+
+
+      const marker =
+        L.marker(
+          [
+            group.latitude,
+            group.longitude
+          ],
+          {
+            icon:
+              icon
+          }
+        );
+
+
+      marker.incidentIds =
+        group.incidents.map(
+          i =>
+            i.id
+        );
+
+
+      marker.bindPopup(
+        buildPopup(
+          group
+        ),
+        {
+          maxWidth:
+            300
+        }
+      );
+
+
+      marker.addTo(
+        markerLayer
+      );
+
+
+      bounds.push(
+        [
+          group.latitude,
+          group.longitude
+        ]
+      );
+
+    }
+  );
+
+
+  if (
+    bounds.length
+  ) {
+
+    map.fitBounds(
+      bounds,
+      {
+        padding:
+          [30, 30],
+
+        maxZoom:
+          14
+      }
     );
 
-    marker.addTo(markerLayer);
-
-    bounds.push([
-      group.latitude,
-      group.longitude
-    ]);
-  });
-
-  if (bounds.length) {
-    map.fitBounds(bounds, {
-      padding: [30, 30],
-      maxZoom: 14
-    });
   }
 
-  setTimeout(() => {
-    map.invalidateSize();
-  }, 100);
+
+  setTimeout(
+    () => {
+
+      map.invalidateSize();
+
+    },
+    100
+  );
 }
 
 
 function toggleMapFilter() {
+
   document
-    .getElementById("mapFilterPanel")
-    .classList.toggle("open");
+    .getElementById(
+      "mapFilterPanel"
+    )
+    .classList
+    .toggle(
+      "open"
+    );
 }
 
 
 function showMyLocation() {
-  if (!navigator.geolocation) {
-    alert("Location is not supported on this device.");
+
+  if (
+    !navigator
+      .geolocation
+  ) {
+
+    alert(
+      "Location is not supported on this device."
+    );
+
+
     return;
   }
 
-  navigator.geolocation.getCurrentPosition(
-    position => {
-      const lat =
-        position.coords.latitude;
 
-      const lon =
-        position.coords.longitude;
+  navigator
+    .geolocation
+    .getCurrentPosition(
 
-      initializeMap();
+      position => {
 
-      if (userLocationMarker) {
-        userLocationMarker.remove();
+        const lat =
+          position
+            .coords
+            .latitude;
+
+
+        const lon =
+          position
+            .coords
+            .longitude;
+
+
+        initializeMap();
+
+
+        if (
+          userLocationMarker
+        ) {
+
+          userLocationMarker
+            .remove();
+
+        }
+
+
+        const icon =
+          L.divIcon({
+
+            className:
+              "",
+
+            html:
+              `<div class="location-marker"></div>`,
+
+            iconSize:
+              [18, 18],
+
+            iconAnchor:
+              [9, 9]
+
+          });
+
+
+        userLocationMarker =
+          L.marker(
+            [
+              lat,
+              lon
+            ],
+            {
+              icon:
+                icon
+            }
+          )
+          .addTo(
+            map
+          );
+
+
+        userLocationMarker
+          .bindPopup(
+            "Your location"
+          );
+
+
+        map.setView(
+          [
+            lat,
+            lon
+          ],
+          15
+        );
+
+
+        userLocationMarker
+          .openPopup();
+
+      },
+
+
+      error => {
+
+        alert(
+          "Unable to get your location. " +
+          "Make sure location permission is enabled."
+        );
+
+      },
+
+
+      {
+        enableHighAccuracy:
+          true,
+
+        timeout:
+          10000
       }
 
-      const icon = L.divIcon({
-        className: "",
-        html: `<div class="location-marker"></div>`,
-        iconSize: [18, 18],
-        iconAnchor: [9, 9]
-      });
-
-      userLocationMarker = L.marker(
-        [lat, lon],
-        { icon }
-      ).addTo(map);
-
-      userLocationMarker.bindPopup(
-        "Your location"
-      );
-
-      map.setView(
-        [lat, lon],
-        15
-      );
-
-      userLocationMarker.openPopup();
-    },
-    error => {
-      alert(
-        "Unable to get your location. Make sure location permission is enabled."
-      );
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 10000
-    }
-  );
+    );
 }
 
 
-function showScreen(screen) {
+function showScreen(
+  screen
+) {
+
   const incidentScreen =
-    document.getElementById("incidentScreen");
+    document.getElementById(
+      "incidentScreen"
+    );
+
 
   const mapScreen =
-    document.getElementById("mapScreen");
+    document.getElementById(
+      "mapScreen"
+    );
+
 
   const incidentsNav =
-    document.getElementById("incidentsNav");
+    document.getElementById(
+      "incidentsNav"
+    );
+
 
   const mapNav =
-    document.getElementById("mapNav");
+    document.getElementById(
+      "mapNav"
+    );
 
-  if (screen === "map") {
-    incidentScreen.style.display = "none";
-    mapScreen.style.display = "block";
 
-    incidentsNav.classList.remove("active");
-    mapNav.classList.add("active");
+  if (
+    screen ===
+    "map"
+  ) {
+
+    incidentScreen
+      .style
+      .display =
+        "none";
+
+
+    mapScreen
+      .style
+      .display =
+        "block";
+
+
+    incidentsNav
+      .classList
+      .remove(
+        "active"
+      );
+
+
+    mapNav
+      .classList
+      .add(
+        "active"
+      );
+
 
     renderMap();
 
   } else {
-    mapScreen.style.display = "none";
-    incidentScreen.style.display = "block";
 
-    mapNav.classList.remove("active");
-    incidentsNav.classList.add("active");
+    mapScreen
+      .style
+      .display =
+        "none";
+
+
+    incidentScreen
+      .style
+      .display =
+        "block";
+
+
+    mapNav
+      .classList
+      .remove(
+        "active"
+      );
+
+
+    incidentsNav
+      .classList
+      .add(
+        "active"
+      );
+
   }
 }
 
 
-function showIncidentOnMap(id) {
-  showScreen("map");
+function showIncidentOnMap(
+  id
+) {
 
-  setTimeout(() => {
-    markerLayer.eachLayer(marker => {
-      if (
-        marker.incidentIds &&
-        marker.incidentIds.includes(id)
-      ) {
-        map.setView(
-          marker.getLatLng(),
-          16
+  showScreen(
+    "map"
+  );
+
+
+  setTimeout(
+    () => {
+
+      markerLayer
+        .eachLayer(
+          marker => {
+
+            if (
+              marker.incidentIds &&
+              marker.incidentIds
+                .includes(
+                  id
+                )
+            ) {
+
+              map.setView(
+                marker.getLatLng(),
+                16
+              );
+
+
+              marker.openPopup();
+
+            }
+
+          }
         );
 
-        marker.openPopup();
-      }
-    });
-  }, 150);
+    },
+    150
+  );
 }
 
 
 function updateStatus() {
+
   if (!lastUpdated)
     return;
 
+
   const seconds =
     Math.floor(
-      (Date.now() - lastUpdated.getTime()) / 1000
+      (
+        Date.now() -
+        lastUpdated.getTime()
+      )
+      /
+      1000
     );
+
 
   let text;
 
-  if (seconds < 10)
-    text = "Updated just now";
 
-  else if (seconds < 60)
-    text = `Updated ${seconds} seconds ago`;
+  if (
+    seconds <
+    10
+  ) {
 
-  else {
+    text =
+      "Updated just now";
+
+  } else if (
+    seconds <
+    60
+  ) {
+
+    text =
+      `Updated ${seconds} seconds ago`;
+
+  } else {
+
     const minutes =
-      Math.floor(seconds / 60);
+      Math.floor(
+        seconds /
+        60
+      );
+
 
     text =
       `Updated ${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+
   }
 
-  document.getElementById("status").textContent =
-    text;
+
+  document
+    .getElementById(
+      "status"
+    )
+    .textContent =
+      text;
 }
 
 
-async function loadIncidents(manual = false) {
-  const status =
-    document.getElementById("status");
+async function loadIncidents(
+  manual =
+    false
+) {
 
-  if (manual)
-    status.textContent = "Refreshing...";
+  const status =
+    document.getElementById(
+      "status"
+    );
+
+
+  if (
+    manual
+  ) {
+
+    status.textContent =
+      "Refreshing...";
+
+  }
+
 
   try {
+
     const response =
-      await fetch(API_URL, {
-        cache: "no-store"
-      });
+      await fetch(
+        API_URL,
+        {
+          cache:
+            "no-store"
+        }
+      );
+
 
     const data =
       await response.json();
 
-    if (!data.success)
-      throw new Error("API error");
+
+    if (
+      !data.success
+    ) {
+
+      throw new Error(
+        "API error"
+      );
+
+    }
+
 
     incidents =
       data.incidents;
 
+
     lastUpdated =
       new Date();
 
+
     updateSummary();
+
     render();
+
     updateStatus();
 
+
     if (
-      document.getElementById("mapScreen")
-        .style.display === "block"
+      document
+        .getElementById(
+          "mapScreen"
+        )
+        .style
+        .display ===
+          "block"
     ) {
+
       renderMap();
+
     }
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
+
     status.textContent =
       "Unable to load incidents";
 
-    console.error(error);
+
+    console.error(
+      error
+    );
+
   }
 }
 
 
-document.querySelectorAll(".filter-button")
-  .forEach(button => {
-    button.addEventListener("click", () => {
-      document.querySelectorAll(".filter-button")
-        .forEach(b =>
-          b.classList.remove("active")
+document
+  .querySelectorAll(
+    ".filter-button"
+  )
+  .forEach(
+    button => {
+
+      button
+        .addEventListener(
+          "click",
+          () => {
+
+            document
+              .querySelectorAll(
+                ".filter-button"
+              )
+              .forEach(
+                b =>
+                  b.classList
+                    .remove(
+                      "active"
+                    )
+              );
+
+
+            button
+              .classList
+              .add(
+                "active"
+              );
+
+
+            currentFilter =
+              button
+                .dataset
+                .filter;
+
+
+            render();
+
+          }
         );
 
-      button.classList.add("active");
-
-      currentFilter =
-        button.dataset.filter;
-
-      render();
-    });
-  });
+    }
+  );
 
 
-document.querySelectorAll(".map-filter-choice")
-  .forEach(button => {
-    button.addEventListener("click", () => {
-      document.querySelectorAll(".map-filter-choice")
-        .forEach(b =>
-          b.classList.remove("active")
+document
+  .querySelectorAll(
+    ".map-filter-choice"
+  )
+  .forEach(
+    button => {
+
+      button
+        .addEventListener(
+          "click",
+          () => {
+
+            document
+              .querySelectorAll(
+                ".map-filter-choice"
+              )
+              .forEach(
+                b =>
+                  b.classList
+                    .remove(
+                      "active"
+                    )
+              );
+
+
+            button
+              .classList
+              .add(
+                "active"
+              );
+
+
+            mapFilter =
+              button
+                .dataset
+                .mapFilter;
+
+
+            document
+              .getElementById(
+                "mapFilterPanel"
+              )
+              .classList
+              .remove(
+                "open"
+              );
+
+
+            renderMap();
+
+          }
         );
 
-      button.classList.add("active");
-
-      mapFilter =
-        button.dataset.mapFilter;
-
-      document
-        .getElementById("mapFilterPanel")
-        .classList.remove("open");
-
-      renderMap();
-    });
-  });
+    }
+  );
 
 
 const hideMedical =
-  document.getElementById("hideMedical");
-
-hideMedical.checked =
-  localStorage.getItem("hideMedical") === "true";
-
-hideMedical.addEventListener("change", () => {
-  localStorage.setItem(
-    "hideMedical",
-    hideMedical.checked
+  document.getElementById(
+    "hideMedical"
   );
 
-  render();
 
-  if (
-    document.getElementById("mapScreen")
-      .style.display === "block"
-  ) {
-    renderMap();
-  }
-});
+hideMedical.checked =
+  localStorage.getItem(
+    "hideMedical"
+  ) ===
+  "true";
+
+
+hideMedical
+  .addEventListener(
+    "change",
+    () => {
+
+      localStorage.setItem(
+        "hideMedical",
+        hideMedical.checked
+      );
+
+
+      render();
+
+
+      if (
+        document
+          .getElementById(
+            "mapScreen"
+          )
+          .style
+          .display ===
+            "block"
+      ) {
+
+        renderMap();
+
+      }
+
+    }
+  );
 
 
 loadIncidents();
+
 updatePushStatus();
 
-setInterval(loadIncidents, 45000);
-setInterval(updateStatus, 10000);
+
+setInterval(
+  loadIncidents,
+  45000
+);
+
+
+setInterval(
+  updateStatus,
+  10000
+);
+
 
 </script>
 
 
 <script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/service-worker.js")
-      .then(registration => {
-        console.log(
-          "Service worker registered:",
-          registration.scope
-        );
-      })
-      .catch(error => {
-        console.error(
-          "Service worker registration failed:",
-          error
-        );
-      });
-  });
+
+if (
+  "serviceWorker"
+  in navigator
+) {
+
+  window
+    .addEventListener(
+      "load",
+      () => {
+
+        navigator
+          .serviceWorker
+          .register(
+            "/service-worker.js"
+          )
+          .then(
+            registration => {
+
+              console.log(
+                "Service worker registered:",
+                registration.scope
+              );
+
+            }
+          )
+          .catch(
+            error => {
+
+              console.error(
+                "Service worker registration failed:",
+                error
+              );
+
+            }
+          );
+
+      }
+    );
+
 }
+
 </script>
+
 
 </body>
 </html>

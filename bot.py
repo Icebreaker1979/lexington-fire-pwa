@@ -11,6 +11,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 STATUS_URL = "https://fire.lexingtonky.gov/open/status/status.htm"
 DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK")
 PUSH_SUBSCRIPTIONS_FILE = "/var/lib/lfd-bot/push_subscriptions.json"
+PUSH_PREFERENCES_FILE = "/var/lib/lfd-bot/push_preferences.json"
 VAPID_PRIVATE_KEY = "/opt/lfd-bot/private_key.pem"
 VAPID_SUBJECT = "mailto:admin@icebreaker1979.foo"
 STATE_FILE = "/var/lib/lfd-bot/seen_incidents.json"
@@ -209,8 +210,58 @@ def save_push_subscriptions(subscriptions):
     os.replace(temp_file, PUSH_SUBSCRIPTIONS_FILE)
 
 
+def load_push_preferences():
+    try:
+        with open(PUSH_PREFERENCES_FILE, "r") as f:
+            data = json.load(f)
+
+        if isinstance(data, dict):
+            return data
+
+        return {}
+
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def get_incident_category(code):
+    if code == "MED":
+        return "medical"
+
+    if code in ("FSTR", "FSTRW"):
+        return "structure_fires"
+
+    if code in ("FVEH", "FVNS", "FVLA"):
+        return "vehicle_fires"
+
+    if code in (
+        "FBGL", "FDUM", "FTRS", "FOTF",
+        "FCHI", "FFIA", "FVIS", "FMAI"
+    ):
+        return "other_fires"
+
+    if code in (
+        "FELF", "FTRN", "FWID", "FUTL"
+    ):
+        return "electrical_utility"
+
+    if code in (
+        "FHMC", "FFHMR", "FHCL", "FMERC",
+        "FHGEO", "FBERTH", "FSCU"
+    ):
+        return "hazmat"
+
+    if code in (
+        "FCOL", "FCSR", "FDVR", "FROP",
+        "FTRE", "FLAR", "FBERTR", "FVAJ"
+    ):
+        return "rescue"
+
+    return "special"
+
 def send_push_notifications(inc, upgraded=False):
     subscriptions = load_push_subscriptions()
+    preferences_by_endpoint = load_push_preferences()
 
     if not subscriptions:
         print("[Push] No subscribers.")
@@ -237,6 +288,41 @@ def send_push_notifications(inc, upgraded=False):
     valid_subscriptions = []
 
     for subscription in subscriptions:
+        endpoint = subscription.get("endpoint", "")
+
+        preferences = preferences_by_endpoint.get(
+            endpoint,
+            {
+                "all_incidents": False,
+                "structure_fires": True,
+                "other_fires": True,
+                "vehicle_fires": True,
+                "electrical_utility": True,
+                "hazmat": True,
+                "rescue": True,
+                "special": True,
+                "medical": False
+            }
+        )
+
+        category = get_incident_category(
+            inc["code"]
+        )
+
+        should_send = (
+            preferences.get("all_incidents", False)
+            or preferences.get(category, False)
+        )
+
+        if not should_send:
+            valid_subscriptions.append(subscription)
+
+            print(
+                f"[Push] Skipped incident #{inc['id']} "
+                f"for subscriber preference ({category})"
+            )
+
+            continue
         try:
             webpush(
                 subscription_info=subscription,
@@ -297,10 +383,12 @@ def save_seen(seen):
 
 def main():
     print("LFD Bot started. Watching for incidents...")
-    seen = load_seen()  # now a dict of {id: code}
+    seen = load_seen()
+
     while True:
         try:
             incidents = fetch_incidents()
+
             for inc in incidents:
                 inc_id = inc["id"]
                 inc_code = inc["code"]
@@ -310,37 +398,43 @@ def main():
                     # Brand new incident
                     seen[inc_id] = inc_code
 
+                    # Discord only sends selected incident codes
                     if inc_code in ALLOWED_CODES:
                         send_discord(inc)
-                        send_push_notifications(inc)
 
+                    # PWA push checks each subscriber's preferences
+                    send_push_notifications(inc)
+
+                    if inc_code in ALLOWED_CODES:
                         print(
                             f"[+] Notified: #{inc_id} "
                             f"{inc_code} — {inc['address']}"
                         )
                     else:
                         print(
-                            f"[~] Skipped:  #{inc_id} "
+                            f"[~] Discord skipped: #{inc_id} "
                             f"{inc_code} — {inc['label']}"
                         )
 
                 elif prev_code != inc_code:
-                    # Code changed on existing incident
+                    # Existing incident changed type
                     seen[inc_id] = inc_code
+                    inc["upgraded_from"] = prev_code
 
+                    # Discord still follows ALLOWED_CODES
                     if inc_code in ALLOWED_CODES:
-                        inc["upgraded_from"] = prev_code
-
                         send_discord(
                             inc,
                             upgraded=True
                         )
 
-                        send_push_notifications(
-                            inc,
-                            upgraded=True
-                        )
+                    # PWA evaluates every changed incident
+                    send_push_notifications(
+                        inc,
+                        upgraded=True
+                    )
 
+                    if inc_code in ALLOWED_CODES:
                         print(
                             f"[↑] Upgraded: #{inc_id} "
                             f"{prev_code} → {inc_code} "
@@ -348,13 +442,15 @@ def main():
                         )
                     else:
                         print(
-                            f"[~] Changed (not notified): "
+                            f"[~] Discord skipped upgrade: "
                             f"#{inc_id} {prev_code} → {inc_code}"
                         )
 
             save_seen(seen)
+
         except Exception as e:
             print(f"[ERROR] {e}")
+
         time.sleep(45)
 
 if __name__ == "__main__":
