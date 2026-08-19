@@ -875,6 +875,51 @@
 
     </label>
 
+    <button
+      class="refresh-button"
+      style="margin-top:10px;"
+      onclick="toggleApparatusKey()"
+    >
+      Apparatus Status Key ▾
+    </button>
+
+    <div
+      id="apparatusKey"
+      style="
+        display:none;
+        margin-top:10px;
+        padding:10px;
+        background:#1e293b;
+        border:1px solid #334155;
+        border-radius:10px;
+      "
+    >
+      <div
+        class="apparatus-status-list"
+        style="margin-top:0;"
+      >
+        <div class="apparatus-status-chip dispatched">
+          <span class="unit">Dispatched</span>
+        </div>
+
+        <div class="apparatus-status-chip nrt">
+          <span class="unit">Enroute</span>
+        </div>
+
+        <div class="apparatus-status-chip atscene">
+          <span class="unit">At Scene</span>
+        </div>
+
+        <div class="apparatus-status-chip transporting">
+          <span class="unit">Transporting</span>
+        </div>
+
+        <div class="apparatus-status-chip arrived">
+          <span class="unit">At Hospital</span>
+        </div>
+      </div>
+    </div>
+
 
     <div class="settings-actions">
 
@@ -2209,6 +2254,22 @@ function getMapFilteredIncidents() {
       return true;
     }
   );
+}
+
+function toggleApparatusKey() {
+  const key =
+    document.getElementById(
+      "apparatusKey"
+    );
+
+  if (
+    key.style.display === "none" ||
+    key.style.display === ""
+  ) {
+    key.style.display = "block";
+  } else {
+    key.style.display = "none";
+  }
 }
 
 function renderApparatusStatus(inc) {
