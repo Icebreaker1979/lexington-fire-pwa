@@ -324,6 +324,19 @@
       color: #cbd5e1;
     }
 
+    .settings-toggle {
+      margin-top: 10px;
+    }
+
+    .settings-panel {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .settings-panel.visible {
+      display: block;
+    }
+
     .apparatus-status-list {
       display: flex;
       flex-wrap: wrap;
@@ -862,6 +875,19 @@
   </div>
 
 
+    <button
+    id="settingsToggle"
+    class="refresh-button settings-toggle"
+    onclick="toggleSettingsPanel()"
+  >
+    ‚Settings ‚ñºæ
+  </button>
+
+  <div
+    id="settingsPanel"
+    class="settings-panel"
+  >
+
   <div class="settings-row">
 
     <label>
@@ -1094,11 +1120,13 @@
       </button>
 
 
-      <div id="preferenceStatus"></div>
+            <div id="preferenceStatus"></div>
 
-    </div>
+    </div> <!-- preferencePanel -->
 
-  </div>
+  </div> <!-- settings-row -->
+
+  </div> <!-- settingsPanel -->
 
 </header>
 
@@ -2254,6 +2282,29 @@ function getMapFilteredIncidents() {
       return true;
     }
   );
+}
+
+function toggleSettingsPanel() {
+
+  const panel =
+    document.getElementById(
+      "settingsPanel"
+    );
+
+  const button =
+    document.getElementById(
+      "settingsToggle"
+    );
+
+  const visible =
+    panel.classList.toggle(
+      "visible"
+    );
+
+  button.textContent =
+    visible
+      ? "Settings ‚ñ≤"
+      : "Settings ‚ñº";
 }
 
 function toggleApparatusKey() {
