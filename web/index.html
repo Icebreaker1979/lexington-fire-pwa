@@ -324,6 +324,66 @@
       color: #cbd5e1;
     }
 
+    .apparatus-status-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .apparatus-status-chip {
+      min-width: 82px;
+      border: 2px solid #000;
+      border-radius: 8px;
+      padding: 6px 8px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    .apparatus-status-chip .unit {
+      display: block;
+      font-size: 14px;
+      line-height: 1.1;
+    }
+
+    .apparatus-status-chip .status {
+      display: block;
+      margin-top: 3px;
+      font-size: 10px;
+      font-weight: normal;
+    }
+
+    .apparatus-status-chip.nrt {
+      background: #B52735;
+      color: #FFFFFF;
+    }
+
+    .apparatus-status-chip.atscene {
+      background: #FFFFFF;
+      color: #B52735;
+    }
+
+    .apparatus-status-chip.transporting {
+      background: #FFFFFF;
+      color: #000000;
+    }
+
+    .apparatus-status-chip.arrived {
+      background: #000000;
+      color: #FFFFFF;
+    }
+
+    .apparatus-status-chip.dispatched {
+      background: #E8DE2A;
+      color: #1D1D1D;
+    }
+
+    .apparatus-status-chip.unknown {
+      background: #475569;
+      color: #FFFFFF;
+    }
+
     .map-button {
       margin-top: 12px;
       border: 0;
@@ -2151,6 +2211,63 @@ function getMapFilteredIncidents() {
   );
 }
 
+function renderApparatusStatus(inc) {
+
+  if (
+    !Array.isArray(inc.apparatus_status) ||
+    inc.apparatus_status.length === 0
+  ) {
+    return `
+      <div class="detail-row">
+        <strong>Apparatus:</strong>
+        ${inc.apparatus || "N/A"}
+      </div>
+    `;
+  }
+
+  const chips =
+    inc.apparatus_status
+      .map(item => {
+
+        const status =
+          item.status ||
+          "unknown";
+
+        const label =
+          item.label ||
+          "Unknown";
+
+        const unit =
+          item.unit ||
+          "Unknown";
+
+        return `
+          <div
+            class="apparatus-status-chip ${status}"
+            title="${label}"
+          >
+            <span class="unit">
+              ${unit}
+            </span>
+
+            <span class="status">
+              ${label}
+            </span>
+          </div>
+        `;
+      })
+      .join("");
+
+  return `
+    <div class="detail-row">
+      <strong>Apparatus:</strong>
+
+      <div class="apparatus-status-list">
+        ${chips}
+      </div>
+    </div>
+  `;
+}
 
 function renderIncident(inc) {
 
@@ -2226,10 +2343,7 @@ function renderIncident(inc) {
           ${inc.arrive || "N/A"}
         </div>
 
-        <div class="detail-row">
-          <strong>Apparatus:</strong>
-          ${inc.apparatus || "N/A"}
-        </div>
+        ${renderApparatusStatus(inc)}
 
         ${mapButton}
 

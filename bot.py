@@ -122,37 +122,116 @@ def get_emoji_and_color(code):
     return "🚒", 0xFF4500
 
 def fetch_incidents():
-    r = requests.get(STATUS_URL, timeout=10, headers={"User-Agent": "Mozilla/5.0"}, verify=False)
+    r = requests.get(
+        STATUS_URL,
+        timeout=10,
+        headers={
+            "User-Agent": "Mozilla/5.0"
+        },
+        verify=False
+    )
+
     r.raise_for_status()
-    soup = BeautifulSoup(r.text, "html.parser")
+
+    soup = BeautifulSoup(
+        r.text,
+        "html.parser"
+    )
+
     incidents = []
+
+    status_labels = {
+        "nrt": "Enroute",
+        "atscene": "At Scene",
+        "transporting": "Transporting",
+        "arrived": "At Hospital",
+        "dispatched": "Dispatched"
+    }
+
     for data_div in soup.select("div.data"):
-        incident_id_el = data_div.select_one("div.databox.incident")
+        incident_id_el = data_div.select_one(
+            "div.databox.incident"
+        )
+
         if not incident_id_el:
             continue
+
         def get(cls, div=data_div):
-            el = div.select_one(f"div.databox.{cls}")
-            return el.get_text(strip=True) if el else ""
+            el = div.select_one(
+                f"div.databox.{cls}"
+            )
+
+            return (
+                el.get_text(strip=True)
+                if el
+                else ""
+            )
+
         code = get("type").upper()
 
-        # Grab all apparatus units from the appdata div
-        appdata = data_div.select_one("div.appdata")
+        apparatus_status = []
+        apparatus_units = []
+
+        appdata = data_div.select_one(
+            "div.appdata"
+        )
+
         if appdata:
-            units = [el.get_text(strip=True) for el in appdata.select("div.databox")]
-            apparatus = ", ".join(u for u in units if u)
+            for el in appdata.select(
+                "div.databox"
+            ):
+                unit = el.get_text(
+                    strip=True
+                )
+
+                if not unit:
+                    continue
+
+                apparatus_units.append(
+                    unit
+                )
+
+                status = "unknown"
+
+                for css_class in el.get(
+                    "class",
+                    []
+                ):
+                    if css_class in status_labels:
+                        status = css_class
+                        break
+
+                apparatus_status.append({
+                    "unit": unit,
+                    "status": status,
+                    "label": status_labels.get(
+                        status,
+                        "Unknown"
+                    )
+                })
+
+        if apparatus_units:
+            apparatus = ", ".join(
+                apparatus_units
+            )
         else:
             apparatus = "N/A"
 
         incidents.append({
-            "id":         get("incident"),
-            "code":       code,
-            "label":      CODES.get(code, code),
-            "alarm":      get("alarm"),
-            "enroute":    get("enroute"),
-            "arrive":     get("arrive"),
-            "address":    get("address"),
-            "apparatus":  apparatus,
+            "id": get("incident"),
+            "code": code,
+            "label": CODES.get(
+                code,
+                code
+            ),
+            "alarm": get("alarm"),
+            "enroute": get("enroute"),
+            "arrive": get("arrive"),
+            "address": get("address"),
+            "apparatus": apparatus,
+            "apparatus_status": apparatus_status
         })
+
     return incidents
 
 def send_discord(inc, upgraded=False):
