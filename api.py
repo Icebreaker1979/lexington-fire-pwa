@@ -1,5 +1,10 @@
 from flask import Flask, jsonify, send_from_directory, request
-from bot import fetch_incidents
+from bot import (
+    CODES,
+    INCIDENT_CODE_GROUPS,
+    fetch_incidents,
+    get_incident_category
+)
 from weather_service import get_weather_data
 import datetime
 import requests
@@ -376,13 +381,45 @@ def push_preferences():
         "rescue",
         "special",
         "medical",
-	"weather_alerts"
+        "weather_alerts"
     }
 
     cleaned = {}
 
     for key in allowed_keys:
-        cleaned[key] = bool(preferences.get(key, False))
+        cleaned[key] = bool(
+            preferences.get(
+                key,
+                False
+            )
+        )
+
+    incident_codes = preferences.get(
+        "incident_codes"
+    )
+
+    if incident_codes is not None:
+        if not isinstance(
+            incident_codes,
+            list
+        ):
+            return jsonify({
+                "success": False,
+                "error": (
+                    "incident_codes "
+                    "must be a list"
+                )
+            }), 400
+
+        cleaned[
+            "incident_codes"
+        ] = sorted({
+            str(code)
+            .strip()
+            .upper()
+            for code in incident_codes
+            if str(code).strip()
+        })
 
     all_preferences = load_push_preferences()
 
@@ -441,6 +478,41 @@ def weather():
             "success": False,
             "error": str(exc)
         }), 500
+
+@app.route("/api/incident-codes")
+def incident_codes():
+    output = []
+
+    for group_name, group in (
+        INCIDENT_CODE_GROUPS.items()
+    ):
+        codes = []
+
+        for code in sorted(
+            group["codes"]
+        ):
+            label = CODES.get(
+                code,
+                code
+            )
+
+            codes.append({
+                "code": code,
+                "label": label,
+                "legacy_category":
+                    get_incident_category(code)
+            })
+
+        output.append({
+            "category": group_name,
+            "label": group["label"],
+            "codes": codes
+        })
+
+    return jsonify({
+        "success": True,
+        "groups": output
+    })
 
 @app.route("/api/incidents")
 def incidents():

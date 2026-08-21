@@ -96,6 +96,95 @@ CODES = {
     "FVEA":   "Vehicle Accident",
 }
 
+INCIDENT_CODE_GROUPS = {
+    "structure_fires": {
+        "label": "Structure Fires",
+        "codes": {
+            "FSTR", "FSTRW"
+        }
+    },
+
+    "other_fires": {
+        "label": "Other Fires",
+        "codes": {
+            "FBGL", "FCHI", "FDUM", "FFIA",
+            "FMAI", "FOTF", "FTRS", "FVIS"
+        }
+    },
+
+    "vehicle_traffic": {
+        "label": "Vehicle / Traffic",
+        "codes": {
+            "FTRA", "FVEA", "FVAJ",
+            "FVEH", "FVLA", "FVNS"
+        }
+    },
+
+    "electrical_utility": {
+        "label": "Electrical / Utility",
+        "codes": {
+            "FELC", "FELF", "FTRN",
+            "FUTL", "FWAC", "FWAR", "FWID"
+        }
+    },
+
+    "hazmat_gas_co": {
+        "label": "HazMat / Gas / CO",
+        "codes": {
+            "FBERTH", "FCAR", "FCMS",
+            "FFHMR", "FGAC", "FGAS",
+            "FGAO", "FHCL", "FHGEO",
+            "FHMC", "FMERC", "FNGL",
+            "FSCU"
+        }
+    },
+
+    "rescue": {
+        "label": "Rescue",
+        "codes": {
+            "FBERTR", "FCOL", "FCSR",
+            "FDVR", "FLAR", "FLOI",
+            "FROP", "FSRCU", "FTRE",
+            "FWTR"
+        }
+    },
+
+    "aircraft": {
+        "label": "Aircraft",
+        "codes": {
+            "FAA1", "FAA2", "FAA3",
+            "FAAA", "FAAB", "FAAC",
+            "FAAE", "FASB"
+        }
+    },
+
+    "alarms_services": {
+        "label": "Alarms / Assistance / Service",
+        "codes": {
+            "FASS", "FDET", "FELS",
+            "FINV", "FLIFT", "FMEA",
+            "FOTS", "FPLB", "FPRT"
+        }
+    },
+
+    "major_special": {
+        "label": "Major / Special",
+        "codes": {
+            "FBAS", "FBOT", "FBWD",
+            "FCSEPP", "FEXP", "FK9R",
+            "FMDR", "FMIS", "FSIA",
+            "FSMO", "FUNT"
+        }
+    },
+
+    "medical": {
+        "label": "Medical",
+        "codes": {
+            "MED"
+        }
+    }
+}
+
 ALLOWED_CODES = {
     "FSTR", "FSTRW",
     "FVEH", "FVNS", "FVLA",
@@ -397,10 +486,21 @@ def send_push_notifications(inc, upgraded=False):
             inc["code"]
         )
 
-        should_send = (
-            preferences.get("all_incidents", False)
-            or preferences.get(category, False)
-        )
+        if "incident_codes" in preferences:
+            incident_codes = preferences.get(
+                "incident_codes",
+                []
+            )
+
+            should_send = (
+                preferences.get("all_incidents", False)
+                or inc["code"] in incident_codes
+            )
+        else:
+            should_send = (
+                preferences.get("all_incidents", False)
+                or preferences.get(category, False)
+            )
 
         if not should_send:
             valid_subscriptions.append(subscription)
@@ -411,6 +511,7 @@ def send_push_notifications(inc, upgraded=False):
             )
 
             continue
+
         try:
             webpush(
                 subscription_info=subscription,

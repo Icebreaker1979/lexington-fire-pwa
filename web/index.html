@@ -161,7 +161,7 @@
 
       margin-top: 12px;
       padding: 10px;
-      padding-bottom: 14px;
+      padding-bottom: 84px;
 
       background: #1e293b;
       border: 1px solid #334155;
@@ -216,6 +216,76 @@
       flex: 0 0 auto;
     }
 
+        .incident-code-preferences {
+      margin-top: 8px;
+    }
+
+    .preference-loading {
+      padding: 10px 0;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .code-group {
+      margin-top: 10px;
+      border: 1px solid #334155;
+      border-radius: 9px;
+      overflow: hidden;
+    }
+
+    .code-group-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .code-group-header input {
+      width: 17px;
+      height: 17px;
+      flex: 0 0 auto;
+    }
+
+    .code-group-items {
+      padding: 0 10px;
+    }
+
+    .code-preference-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid #334155;
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .code-preference-item:last-child {
+      border-bottom: 0;
+    }
+
+    .code-preference-item input {
+      width: 17px;
+      height: 17px;
+      flex: 0 0 auto;
+      margin-top: 1px;
+    }
+
+    .code-preference-code {
+      display: inline-block;
+      min-width: 48px;
+      color: #f8fafc;
+      font-weight: bold;
+    }
+
+    .code-preference-label {
+      color: #cbd5e1;
+    }
+
     .save-preferences {
       width: 100%;
       margin-top: 10px;
@@ -229,13 +299,9 @@
       color: white;
       font-weight: bold;
 
-      position: sticky;
-      bottom: 0;
+      position: static;
 
       z-index: 5;
-
-      box-shadow:
-        0 -8px 12px rgba(30, 41, 59, .95);
     }
 
     #preferenceStatus {
@@ -880,7 +946,7 @@
     class="refresh-button settings-toggle"
     onclick="toggleSettingsPanel()"
   >
-    �Settings ▼�
+    Settings ▼
   </button>
 
   <div
@@ -1005,100 +1071,14 @@
       </label>
 
 
-      <label class="preference-item">
-
-        <input
-          type="checkbox"
-          id="prefStructure"
-        >
-
-        🏠🔥 Structure Fires
-
-      </label>
-
-
-      <label class="preference-item">
-
-        <input
-          type="checkbox"
-          id="prefOtherFire"
-        >
-
-        🔥 Other Fires
-
-      </label>
-
-
-      <label class="preference-item">
-
-        <input
-          type="checkbox"
-          id="prefVehicle"
-        >
-
-        🚗🔥 Vehicle Fires
-
-      </label>
-
-
-      <label class="preference-item">
-
-        <input
-          type="checkbox"
-          id="prefElectrical"
-        >
-
-        ⚡ Electrical / Utility
-
-      </label>
-
-
-      <label class="preference-item">
-
-        <input
-          type="checkbox"
-          id="prefHazmat"
-        >
-
-        ☣️ HazMat
-
-      </label>
-
-
-      <label class="preference-item">
-
-        <input
-          type="checkbox"
-          id="prefRescue"
-        >
-
-        🆘 Rescue
-
-      </label>
-
-
-      <label class="preference-item">
-
-        <input
-          type="checkbox"
-          id="prefSpecial"
-        >
-
-        🚨 Major / Special / Other
-
-      </label>
-
-
-      <label class="preference-item">
-
-        <input
-          type="checkbox"
-          id="prefMedical"
-        >
-
-        🚑 Medical
-
-      </label>
+            <div
+        id="incidentCodePreferences"
+        class="incident-code-preferences"
+      >
+        <div class="preference-loading">
+          Loading incident types...
+        </div>
+      </div>
 
       <label class="preference-item">
 
@@ -1316,7 +1296,7 @@ const SPECIAL_CODES = new Set([
 function getCategory(code) {
 
   if (
-    code === "MED") ||
+    code === "MED" ||
     code === "FMEA"
   )
     return "medical";
@@ -1444,30 +1424,126 @@ function urlBase64ToUint8Array(
 }
 
 
+let incidentCodeCatalog = [];
+
+
+function escapeHtml(value) {
+
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+
+function getIncidentCodeCheckboxes() {
+
+  return Array.from(
+    document.querySelectorAll(
+      ".incident-code-checkbox"
+    )
+  );
+}
+
+
+function getGroupCodeCheckboxes(groupName) {
+
+  return Array.from(
+    document.querySelectorAll(
+      `.incident-code-checkbox[data-group="${groupName}"]`
+    )
+  );
+}
+
+
+function updateGroupCheckbox(groupName) {
+
+  const groupCheckbox =
+    document.querySelector(
+      `.code-group-checkbox[data-group="${groupName}"]`
+    );
+
+  if (!groupCheckbox) {
+    return;
+  }
+
+  const children =
+    getGroupCodeCheckboxes(
+      groupName
+    );
+
+  if (!children.length) {
+    groupCheckbox.checked = false;
+    groupCheckbox.indeterminate = false;
+    return;
+  }
+
+  const checkedCount =
+    children.filter(
+      checkbox =>
+        checkbox.checked
+    ).length;
+
+  groupCheckbox.checked =
+    checkedCount === children.length;
+
+  groupCheckbox.indeterminate =
+    checkedCount > 0 &&
+    checkedCount < children.length;
+}
+
+
+function updateAllGroupCheckboxes() {
+
+  document
+    .querySelectorAll(
+      ".code-group-checkbox"
+    )
+    .forEach(
+      checkbox =>
+        updateGroupCheckbox(
+          checkbox.dataset.group
+        )
+    );
+}
+
+
+function toggleCodeGroup(
+  groupName,
+  checked
+) {
+
+  getGroupCodeCheckboxes(
+    groupName
+  ).forEach(
+    checkbox => {
+      checkbox.checked =
+        checked;
+    }
+  );
+
+  updateGroupCheckbox(
+    groupName
+  );
+}
+
+
 function setPreferenceControlsDisabled(
   disabled
 ) {
 
-  const ids = [
-    "prefStructure",
-    "prefOtherFire",
-    "prefVehicle",
-    "prefElectrical",
-    "prefHazmat",
-    "prefRescue",
-    "prefSpecial",
-    "prefMedical"
-  ];
-
-
-  ids.forEach(id => {
-
-    document
-      .getElementById(id)
-      .disabled =
-        disabled;
-
-  });
+  document
+    .querySelectorAll(
+      ".incident-code-checkbox, .code-group-checkbox"
+    )
+    .forEach(
+      checkbox => {
+        checkbox.disabled =
+          disabled;
+      }
+    );
 }
 
 
@@ -1479,7 +1555,6 @@ function handleAllIncidentsChange() {
         "prefAll"
       )
       .checked;
-
 
   setPreferenceControlsDisabled(
     all
@@ -1494,10 +1569,201 @@ async function getCurrentPushSubscription() {
       .serviceWorker
       .ready;
 
-
   return registration
     .pushManager
     .getSubscription();
+}
+
+
+async function loadIncidentCodeCatalog() {
+
+  const response =
+    await fetch(
+      "/api/incident-codes",
+      {
+        cache:
+          "no-store"
+      }
+    );
+
+  if (!response.ok) {
+    throw new Error(
+      "Could not load incident codes."
+    );
+  }
+
+  const data =
+    await response.json();
+
+  incidentCodeCatalog =
+    Array.isArray(data.groups)
+      ? data.groups
+      : [];
+
+  return incidentCodeCatalog;
+}
+
+
+function renderIncidentCodePreferences(
+  prefs
+) {
+
+  const container =
+    document.getElementById(
+      "incidentCodePreferences"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  const hasExactCodes =
+    Array.isArray(
+      prefs.incident_codes
+    );
+
+  const exactCodes =
+    new Set(
+      hasExactCodes
+        ? prefs.incident_codes
+        : []
+    );
+
+  const allIncidents =
+    !!prefs.all_incidents;
+
+  const html =
+    incidentCodeCatalog
+      .map(
+        group => {
+
+          const groupName =
+            escapeHtml(
+              group.category
+            );
+
+          const groupLabel =
+            escapeHtml(
+              group.label
+            );
+
+          const items =
+            group.codes
+              .map(
+                item => {
+
+                  const code =
+                    escapeHtml(
+                      item.code
+                    );
+
+                  const label =
+                    escapeHtml(
+                      item.label
+                    );
+
+                  const legacyCategory =
+                    item.legacy_category ||
+                    "special";
+
+                  let checked =
+                    false;
+
+                  if (hasExactCodes) {
+
+                    checked =
+                      exactCodes.has(
+                        item.code
+                      );
+
+                  } else if (
+                    allIncidents
+                  ) {
+
+                    checked = true;
+
+                  } else {
+
+                    checked =
+                      !!prefs[
+                        legacyCategory
+                      ];
+                  }
+
+                  return `
+                    <label
+                      class="code-preference-item"
+                    >
+                      <input
+                        type="checkbox"
+                        class="incident-code-checkbox"
+                        data-code="${code}"
+                        data-group="${groupName}"
+                        data-legacy-category="${escapeHtml(legacyCategory)}"
+                        ${checked ? "checked" : ""}
+                        onchange="updateGroupCheckbox('${groupName}')"
+                      >
+
+                      <span>
+                        <span
+                          class="code-preference-code"
+                        >
+                          ${code}
+                        </span>
+
+                        <span
+                          class="code-preference-label"
+                        >
+                          ${label}
+                        </span>
+                      </span>
+                    </label>
+                  `;
+                }
+              )
+              .join("");
+
+          return `
+            <div class="code-group">
+
+              <label class="code-group-header">
+
+                <input
+                  type="checkbox"
+                  class="code-group-checkbox"
+                  data-group="${groupName}"
+                  onchange="toggleCodeGroup('${groupName}', this.checked)"
+                >
+
+                <span>
+                  ${groupLabel}
+                </span>
+
+              </label>
+
+              <div class="code-group-items">
+                ${items}
+              </div>
+
+            </div>
+          `;
+        }
+      )
+      .join("");
+
+  container.innerHTML =
+    html ||
+    `
+      <div class="preference-loading">
+        No incident types available.
+      </div>
+    `;
+
+  updateAllGroupCheckboxes();
+
+  setPreferenceControlsDisabled(
+    allIncidents
+  );
 }
 
 
@@ -1506,23 +1772,17 @@ async function loadPushPreferences() {
   const subscription =
     await getCurrentPushSubscription();
 
-
   if (!subscription) {
-
     return false;
-
   }
-
 
   const status =
     document.getElementById(
       "preferenceStatus"
     );
 
-
   status.textContent =
     "Loading preferences...";
-
 
   try {
 
@@ -1531,33 +1791,35 @@ async function loadPushPreferences() {
         subscription.endpoint
       );
 
+    const [
+      preferencesResponse
+    ] =
+      await Promise.all([
+        fetch(
+          `/api/push/preferences?endpoint=${endpoint}`,
+          {
+            cache:
+              "no-store"
+          }
+        ),
+        loadIncidentCodeCatalog()
+      ]);
 
-    const response =
-      await fetch(
-        `/api/push/preferences?endpoint=${endpoint}`,
-        {
-          cache:
-            "no-store"
-        }
-      );
-
-
-    if (!response.ok) {
-
+    if (
+      !preferencesResponse.ok
+    ) {
       throw new Error(
         "Could not load preferences."
       );
-
     }
 
-
     const data =
-      await response.json();
-
+      await preferencesResponse
+        .json();
 
     const prefs =
-      data.preferences;
-
+      data.preferences ||
+      {};
 
     document
       .getElementById(
@@ -1566,71 +1828,6 @@ async function loadPushPreferences() {
       .checked =
         !!prefs.all_incidents;
 
-
-    document
-      .getElementById(
-        "prefStructure"
-      )
-      .checked =
-        !!prefs.structure_fires;
-
-
-    document
-      .getElementById(
-        "prefOtherFire"
-      )
-      .checked =
-        !!prefs.other_fires;
-
-
-    document
-      .getElementById(
-        "prefVehicle"
-      )
-      .checked =
-        !!prefs.vehicle_fires;
-
-
-    document
-      .getElementById(
-        "prefElectrical"
-      )
-      .checked =
-        !!prefs.electrical_utility;
-
-
-    document
-      .getElementById(
-        "prefHazmat"
-      )
-      .checked =
-        !!prefs.hazmat;
-
-
-    document
-      .getElementById(
-        "prefRescue"
-      )
-      .checked =
-        !!prefs.rescue;
-
-
-    document
-      .getElementById(
-        "prefSpecial"
-      )
-      .checked =
-        !!prefs.special;
-
-
-    document
-      .getElementById(
-        "prefMedical"
-      )
-      .checked =
-        !!prefs.medical;
-
-
     document
       .getElementById(
         "prefWeather"
@@ -1638,12 +1835,13 @@ async function loadPushPreferences() {
       .checked =
         !!prefs.weather_alerts;
 
+    renderIncidentCodePreferences(
+      prefs
+    );
 
     handleAllIncidentsChange();
 
-
     status.textContent = "";
-
 
     return true;
 
@@ -1651,10 +1849,8 @@ async function loadPushPreferences() {
 
     console.error(error);
 
-
     status.textContent =
       "Unable to load preferences.";
-
 
     return false;
   }
@@ -1668,7 +1864,6 @@ async function togglePreferencePanel() {
       "preferencePanel"
     );
 
-
   if (
     panel.classList.contains(
       "visible"
@@ -1680,21 +1875,83 @@ async function togglePreferencePanel() {
     );
 
     return;
-
   }
-
 
   const loaded =
     await loadPushPreferences();
-
 
   if (loaded) {
 
     panel.classList.add(
       "visible"
     );
-
   }
+}
+
+
+function getSelectedIncidentCodes() {
+
+  return getIncidentCodeCheckboxes()
+    .filter(
+      checkbox =>
+        checkbox.checked
+    )
+    .map(
+      checkbox =>
+        checkbox.dataset.code
+    )
+    .filter(Boolean)
+    .sort();
+}
+
+
+function getLegacyPreferencesFromCodes(
+  selectedCodes
+) {
+
+  const selected =
+    new Set(
+      selectedCodes
+    );
+
+  const legacy = {
+    structure_fires: false,
+    other_fires: false,
+    vehicle_fires: false,
+    electrical_utility: false,
+    hazmat: false,
+    rescue: false,
+    special: false,
+    medical: false
+  };
+
+  getIncidentCodeCheckboxes()
+    .forEach(
+      checkbox => {
+
+        const code =
+          checkbox.dataset.code;
+
+        const category =
+          checkbox.dataset
+            .legacyCategory;
+
+        if (
+          selected.has(code) &&
+          Object.prototype
+            .hasOwnProperty
+            .call(
+              legacy,
+              category
+            )
+        ) {
+          legacy[category] =
+            true;
+        }
+      }
+    );
+
+  return legacy;
 }
 
 
@@ -1703,7 +1960,6 @@ async function savePushPreferences() {
   const subscription =
     await getCurrentPushSubscription();
 
-
   if (!subscription) {
 
     alert(
@@ -1711,19 +1967,23 @@ async function savePushPreferences() {
     );
 
     return;
-
   }
-
 
   const status =
     document.getElementById(
       "preferenceStatus"
     );
 
-
   status.textContent =
     "Saving...";
 
+  const incidentCodes =
+    getSelectedIncidentCodes();
+
+  const legacy =
+    getLegacyPreferencesFromCodes(
+      incidentCodes
+    );
 
   const preferences = {
 
@@ -1734,70 +1994,32 @@ async function savePushPreferences() {
         )
         .checked,
 
+    incident_codes:
+      incidentCodes,
 
     structure_fires:
-      document
-        .getElementById(
-          "prefStructure"
-        )
-        .checked,
-
+      legacy.structure_fires,
 
     other_fires:
-      document
-        .getElementById(
-          "prefOtherFire"
-        )
-        .checked,
-
+      legacy.other_fires,
 
     vehicle_fires:
-      document
-        .getElementById(
-          "prefVehicle"
-        )
-        .checked,
-
+      legacy.vehicle_fires,
 
     electrical_utility:
-      document
-        .getElementById(
-          "prefElectrical"
-        )
-        .checked,
-
+      legacy.electrical_utility,
 
     hazmat:
-      document
-        .getElementById(
-          "prefHazmat"
-        )
-        .checked,
-
+      legacy.hazmat,
 
     rescue:
-      document
-        .getElementById(
-          "prefRescue"
-        )
-        .checked,
-
+      legacy.rescue,
 
     special:
-      document
-        .getElementById(
-          "prefSpecial"
-        )
-        .checked,
-
+      legacy.special,
 
     medical:
-      document
-        .getElementById(
-          "prefMedical"
-        )
-        .checked,
-
+      legacy.medical,
 
     weather_alerts:
       document
@@ -1806,7 +2028,6 @@ async function savePushPreferences() {
         )
         .checked
   };
-
 
   try {
 
@@ -1833,19 +2054,15 @@ async function savePushPreferences() {
         }
       );
 
-
     if (!response.ok) {
 
       throw new Error(
         "Could not save preferences."
       );
-
     }
-
 
     status.textContent =
       "✓ Preferences saved.";
-
 
     setTimeout(() => {
 
@@ -1858,7 +2075,6 @@ async function savePushPreferences() {
           "visible"
         );
 
-
       status.textContent = "";
 
     }, 800);
@@ -1867,13 +2083,24 @@ async function savePushPreferences() {
 
     console.error(error);
 
-
     status.textContent =
       "Unable to save preferences.";
-
   }
 }
 
+
+async function getCurrentPushSubscription() {
+
+  const registration =
+    await navigator
+      .serviceWorker
+      .ready;
+
+
+  return registration
+    .pushManager
+    .getSubscription();
+}
 
 async function updatePushStatus() {
 
