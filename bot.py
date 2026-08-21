@@ -22,6 +22,10 @@ CODES = {
     "FAA1":   "Aircraft Alert 1",
     "FAA2":   "Aircraft Alert 2",
     "FAA3":   "Aircraft Alert 3",
+    "FAAA":   "Aircraft Response Alpha",
+    "FAAB":   "Aircraft Response Bravo",
+    "FAAC":   "Aircraft Response Charlie",
+    "FAAE":   "Aircraft Response Echo",
     "FASB":   "Aircraft Standby Bluegrass Station",
     "FASS":   "Assistance",
     "FBAS":   "Barricaded Subject",
@@ -88,6 +92,7 @@ CODES = {
     "FWAC":   "Water Cutoff",
     "FWTR":   "Water Rescue",
     "MED":    "Medical Response",
+    "FMEA":   "Medical Alarm",
     "FVEA":   "Vehicle Accident",
 }
 
@@ -101,6 +106,7 @@ ALLOWED_CODES = {
     "FCOL", "FCSR", "FDVR", "FROP", "FTRE", "FLAR", "FBERTR", "FVAJ",
     "FEXP", "FBOT", "FBWD",
     "FAA1", "FAA2", "FAA3",
+    "FAAA", "FAAB", "FAAC", "FAAE",
     "FBAS", "FSRCU", "FMDR", "FCSEPP", "FMIS", "FTRA",
 }
 
@@ -117,7 +123,7 @@ def get_emoji_and_color(code):
                 "FBERTR", "FVAJ"):                                    return "🆘",   0xE74C3C
     if code in ("FEXP", "FBWD"):                                      return "💥",   0xFF0000
     if code == "FBOT":                                                return "🧨",   0xFF4500
-    if code in ("FAA1", "FAA2", "FAA3"):                             return "✈️",   0x2ECC71
+    if code in ("FAA1", "FAA2", "FAA3","FAAA", "FAAB", "FAAC", "FAAE"):                             return "✈️",   0x2ECC71
     if code in ("FBAS", "FSRCU", "FMDR", "FCSEPP", "FMIS", "FTRA"): return "🚨",   0xC0392B
     return "🚒", 0xFF4500
 
@@ -306,7 +312,7 @@ def load_push_preferences():
 
 
 def get_incident_category(code):
-    if code == "MED":
+    if code in ("MED", "FMEA"):
         return "medical"
 
     if code in ("FSTR", "FSTRW"):

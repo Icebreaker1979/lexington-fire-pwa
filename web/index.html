@@ -1307,6 +1307,7 @@ const RESCUE_CODES = new Set([
 const SPECIAL_CODES = new Set([
   "FEXP","FBOT","FBWD",
   "FAA1","FAA2","FAA3",
+  "FAAA","FAAB","FAAC","FAAE",
   "FBAS","FSRCU","FMDR",
   "FCSEPP","FMIS","FTRA"
 ]);
@@ -1314,7 +1315,10 @@ const SPECIAL_CODES = new Set([
 
 function getCategory(code) {
 
-  if (code === "MED")
+  if (
+    code === "MED") ||
+    code === "FMEA"
+  )
     return "medical";
 
   if (FIRE_CODES.has(code))
@@ -1335,7 +1339,10 @@ function getCategory(code) {
 
 function getEmoji(code) {
 
-  if (code === "MED")
+  if (
+    code === "MED" ||
+    code === "FMEA"
+  )
     return "🚑";
 
 
@@ -1384,7 +1391,7 @@ function getEmoji(code) {
 
 
   if (
-    ["FAA1","FAA2","FAA3"]
+    ["FAA1","FAA2","FAA3", "FAAA", "FAAB", "FAAC", "FAAE"]
       .includes(code)
   )
     return "✈️";
