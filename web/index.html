@@ -711,9 +711,9 @@
       padding: 50px 10px;
     }
 
-    #weatherScreen {
+        #weatherScreen {
       display: none;
-      padding: 14px 14px 84px;
+      padding: 14px 14px 90px;
       max-width: 800px;
       margin: auto;
     }
@@ -723,108 +723,271 @@
       justify-content: space-between;
       align-items: center;
       gap: 10px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
-    .weather-title { margin: 0; font-size: 20px; }
-    .weather-subtitle { margin-top: 4px; font-size: 12px; color: #94a3b8; }
+    .weather-title {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .weather-subtitle {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
 
     .weather-card {
       background: #1e293b;
       border: 1px solid #334155;
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 12px;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+
+    .weather-current-card {
+      position: relative;
+      background:
+        radial-gradient(
+          circle at 82% 18%,
+          rgba(96, 165, 250, .17),
+          transparent 32%
+        ),
+        linear-gradient(
+          145deg,
+          #1e293b,
+          #172033
+        );
     }
 
     .weather-current-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: start;
       gap: 12px;
     }
 
-    .weather-temp { font-size: 42px; font-weight: bold; line-height: 1; }
-    .weather-description { margin-top: 5px; color: #cbd5e1; font-size: 16px; }
-    .weather-station { color: #94a3b8; font-size: 11px; text-align: right; }
+    .weather-current-main {
+      min-width: 0;
+    }
+
+    .weather-temp {
+      font-size: 52px;
+      font-weight: 800;
+      line-height: .95;
+      letter-spacing: -2px;
+    }
+
+    .weather-description {
+      margin-top: 9px;
+      color: #e2e8f0;
+      font-size: 17px;
+      font-weight: 500;
+    }
+
+    .weather-hero-icon {
+      width: 105px;
+      height: 105px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 76px;
+      line-height: 1;
+      filter:
+        drop-shadow(
+          0 8px 12px
+          rgba(0, 0, 0, .25)
+        );
+    }
+
+    .weather-station {
+      grid-column: 1 / -1;
+      color: #94a3b8;
+      font-size: 11px;
+      text-align: right;
+      margin-top: -8px;
+    }
 
     .weather-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 9px;
+      margin-top: 16px;
+    }
+
+    .weather-detail {
+      background: rgba(15, 23, 42, .78);
+      border: 1px solid rgba(51, 65, 85, .75);
+      border-radius: 12px;
+      padding: 11px;
+      min-height: 58px;
+    }
+
+    .weather-detail-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #94a3b8;
+      font-size: 10px;
+      margin-bottom: 5px;
+    }
+
+    .weather-detail-icon {
+      font-size: 14px;
+    }
+
+    .weather-detail-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .weather-section-title {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 17px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .weather-alert {
+      border-left: 5px solid #ef4444;
+      background: #172033;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .weather-alert-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .weather-alert-meta {
+      color: #cbd5e1;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .weather-alert-text {
+      color: #cbd5e1;
+      font-size: 13px;
+      line-height: 1.4;
+      white-space: pre-line;
+    }
+
+    .weather-no-alerts {
+      color: #94a3b8;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .forecast-name {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 3px;
+    }
+
+        .forecast-card {
+      position: relative;
+      background:
+        linear-gradient(
+          160deg,
+          #202d42,
+          #172033
+        );
+      border: 1px solid #334155;
+      border-radius: 15px;
+      padding: 11px;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .forecast-icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 50px;
+      font-size: 40px;
+      line-height: 1;
+      margin: 0 0 4px;
+      filter:
+        drop-shadow(
+          0 4px 7px
+          rgba(0, 0, 0, .2)
+        );
+    }
+
+    .forecast-temp {
+      font-size: 25px;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+
+    .forecast-short {
+      color: #cbd5e1;
+      font-size: 11px;
+      line-height: 1.3;
+      flex: 1;
+      min-height: 28px;
+    }
+
+    .forecast-extra {
+      color: #94a3b8;
+      font-size: 10px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(51, 65, 85, .7);
+    }
+
+    .weather-links {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
       margin-top: 14px;
     }
 
-    .weather-detail {
-      background: #0f172a;
-      border-radius: 9px;
-      padding: 9px;
-    }
-
-    .weather-detail-label {
-      display: block;
-      color: #94a3b8;
-      font-size: 10px;
-      margin-bottom: 3px;
-    }
-
-    .weather-detail-value { font-size: 14px; font-weight: bold; }
-    .weather-section-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
-
-    .weather-alert {
-      border-left: 5px solid #ef4444;
-      background: #1e293b;
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 10px;
-    }
-
-    .weather-alert-title { font-weight: bold; margin-bottom: 5px; }
-    .weather-alert-meta { color: #cbd5e1; font-size: 12px; margin-bottom: 6px; }
-    .weather-alert-text { color: #cbd5e1; font-size: 13px; line-height: 1.4; white-space: pre-line; }
-    .weather-no-alerts { color: #94a3b8; font-size: 13px; }
-
-    .forecast-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
-
-    .forecast-card {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 11px;
-    }
-
-    .forecast-name { font-weight: bold; margin-bottom: 6px; }
-    .forecast-temp { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
-    .forecast-short { color: #cbd5e1; font-size: 12px; min-height: 30px; }
-    .forecast-extra { color: #94a3b8; font-size: 11px; margin-top: 7px; }
-
-    .weather-links {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-top: 12px;
-    }
-
     .weather-link {
       display: block;
       text-align: center;
       text-decoration: none;
-      border-radius: 9px;
+      border-radius: 10px;
       padding: 11px 8px;
       background: #334155;
       color: white;
       font-size: 13px;
+      font-weight: 600;
     }
 
-    .weather-error { color: #fca5a5; padding: 20px 4px; text-align: center; }
+    .weather-error {
+      color: #fca5a5;
+      padding: 20px 4px;
+      text-align: center;
+    }
 
     @media (min-width: 600px) {
-      .weather-details { grid-template-columns: repeat(4, 1fr); }
-      .forecast-grid { grid-template-columns: repeat(3, 1fr); }
+      .weather-details {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .forecast-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .weather-hero-icon {
+        width: 130px;
+        height: 110px;
+        font-size: 86px;
+      }
     }
 
   </style>
@@ -3249,114 +3412,544 @@ function formatWeatherObservationTime(timestamp) {
   }
 }
 
+function getWeatherIcon(description, isNight = false) {
+  const text =
+    String(description || "")
+      .toLowerCase();
+
+  if (
+    text.includes("thunder") ||
+    text.includes("t-storm")
+  ) {
+    return "⛈️";
+  }
+
+  if (
+    text.includes("snow") ||
+    text.includes("flurr")
+  ) {
+    return "🌨️";
+  }
+
+  if (
+    text.includes("sleet") ||
+    text.includes("freezing rain") ||
+    text.includes("ice")
+  ) {
+    return "🌨️";
+  }
+
+  if (
+    text.includes("rain") ||
+    text.includes("shower")
+  ) {
+    return "🌧️";
+  }
+
+  if (
+    text.includes("fog") ||
+    text.includes("mist") ||
+    text.includes("haze")
+  ) {
+    return "🌫️";
+  }
+
+  if (
+    text.includes("wind") ||
+    text.includes("breezy")
+  ) {
+    return "💨";
+  }
+
+  if (
+    text.includes("partly cloudy") ||
+    text.includes("mostly sunny") ||
+    text.includes("mostly clear") ||
+    text.includes("few clouds")
+  ) {
+    return isNight ? "☁️🌙" : "🌤️";
+  }
+
+  if (
+    text.includes("mostly cloudy")
+  ) {
+    return isNight ? "☁️🌙" : "🌥️";
+  }
+
+  if (
+    text.includes("cloud") ||
+    text.includes("overcast")
+  ) {
+    return "☁️";
+  }
+
+  if (
+    text.includes("sunny") ||
+    text.includes("clear")
+  ) {
+    return isNight ? "🌙" : "☀️";
+  }
+
+  return isNight ? "🌙" : "🌤️";
+}
+
+
+function weatherPeriodIsNight(period) {
+  if (
+    typeof period.is_daytime ===
+    "boolean"
+  ) {
+    return !period.is_daytime;
+  }
+
+  const name =
+    String(period.name || "")
+      .toLowerCase();
+
+  return (
+    name.includes("night") ||
+    name.includes("overnight")
+  );
+}
+
 function renderWeather(data) {
-  const container = document.getElementById("weatherContent");
-  const current = data.current || {};
-  const alerts = Array.isArray(data.alerts) ? data.alerts : [];
-  const forecast = Array.isArray(data.forecast) ? data.forecast : [];
-  const links = data.links || {};
+  const container =
+    document.getElementById(
+      "weatherContent"
+    );
 
-  const temp = current.temperature_f ?? "N/A";
-  const feels = current.feels_like_f ?? "N/A";
-  const humidity = current.humidity_percent ?? current.relative_humidity_percent ?? "N/A";
-  const dewPoint = current.dew_point_f ?? "N/A";
-  const pressure = current.pressure_inhg ?? "N/A";
-  const windSpeed = current.wind_speed_mph ?? "N/A";
-  const gustText = current.wind_gust_mph ? `${current.wind_gust_mph} mph` : "None";
-  const station = current.station_name || current.station || "NWS observation station";
-  const windDirection = current.wind_direction || "";
+  const current =
+    data.current || {};
 
-  const alertHtml = alerts.length
-    ? alerts.map(alert => {
-        const title = alert.event || alert.headline || "Weather Alert";
-        const meta = [
-          alert.severity,
-          alert.urgency,
-          alert.certainty
-        ].filter(Boolean).join(" • ");
-        const body = alert.description || alert.instruction || alert.headline || "";
-        return `
-          <div class="weather-alert">
-            <div class="weather-alert-title">${escapeWeatherHtml(title)}</div>
-            ${meta ? `<div class="weather-alert-meta">${escapeWeatherHtml(meta)}</div>` : ""}
-            ${body ? `<div class="weather-alert-text">${escapeWeatherHtml(body)}</div>` : ""}
+  const alerts =
+    Array.isArray(data.alerts)
+      ? data.alerts
+      : [];
+
+  const forecast =
+    Array.isArray(data.forecast)
+      ? data.forecast
+      : [];
+
+  const links =
+    data.links || {};
+
+
+  const temp =
+    current.temperature_f ??
+    "N/A";
+
+  const feels =
+    current.feels_like_f ??
+    "N/A";
+
+  const humidity =
+    current.humidity_percent ??
+    current.relative_humidity_percent ??
+    "N/A";
+
+  const dewPoint =
+    current.dew_point_f ??
+    "N/A";
+
+  const pressure =
+    current.pressure_inhg ??
+    "N/A";
+
+  const windSpeed =
+    current.wind_speed_mph ??
+    "N/A";
+
+  const gustText =
+    current.wind_gust_mph
+      ? `${current.wind_gust_mph} mph`
+      : "None";
+
+  const station =
+    current.station_name ||
+    current.station ||
+    "NWS observation station";
+
+  const windDirection =
+    current.wind_direction ||
+    "";
+
+  const currentDescription =
+    current.description ||
+    "Current conditions";
+
+  const hour =
+    new Date().getHours();
+
+  const currentIsNight =
+    hour < 6 ||
+    hour >= 20;
+
+  const currentIcon =
+    getWeatherIcon(
+      currentDescription,
+      currentIsNight
+    );
+
+
+  const alertHtml =
+    alerts.length
+      ? alerts.map(alert => {
+
+          const title =
+            alert.event ||
+            alert.headline ||
+            "Weather Alert";
+
+          const meta = [
+            alert.severity,
+            alert.urgency,
+            alert.certainty
+          ]
+            .filter(Boolean)
+            .join(" • ");
+
+          const body =
+            alert.description ||
+            alert.instruction ||
+            alert.headline ||
+            "";
+
+          return `
+            <div class="weather-alert">
+
+              <div class="weather-alert-title">
+                ⚠️
+                ${escapeWeatherHtml(title)}
+              </div>
+
+              ${
+                meta
+                  ? `
+                    <div class="weather-alert-meta">
+                      ${escapeWeatherHtml(meta)}
+                    </div>
+                  `
+                  : ""
+              }
+
+              ${
+                body
+                  ? `
+                    <div class="weather-alert-text">
+                      ${escapeWeatherHtml(body)}
+                    </div>
+                  `
+                  : ""
+              }
+
+            </div>
+          `;
+
+        }).join("")
+      : `
+          <div class="weather-no-alerts">
+            No active weather alerts for
+            Fayette County.
           </div>
         `;
-      }).join("")
-    : `<div class="weather-no-alerts">No active weather alerts for Fayette County.</div>`;
 
-  const forecastHtml = forecast.length
-    ? forecast.map(period => `
-        <div class="forecast-card">
-          <div class="forecast-name">${escapeWeatherHtml(period.name || "")}</div>
-          <div class="forecast-temp">${escapeWeatherHtml(period.temperature ?? "")}${period.temperature != null ? "°" : ""}${escapeWeatherHtml(period.temperature_unit || "F")}</div>
-          <div class="forecast-short">${escapeWeatherHtml(period.short_forecast || period.description || "")}</div>
-          <div class="forecast-extra">
-            ${escapeWeatherHtml(period.wind_direction || "")}
-            ${period.wind_speed ? ` ${escapeWeatherHtml(period.wind_speed)}` : ""}
+
+  const forecastHtml =
+    forecast.length
+      ? forecast.map(period => {
+
+          const description =
+            period.short_forecast ||
+            period.description ||
+            "";
+
+          const icon =
+            getWeatherIcon(
+              description,
+              weatherPeriodIsNight(period)
+            );
+
+          return `
+            <div class="forecast-card">
+
+              <div class="forecast-name">
+                ${escapeWeatherHtml(
+                  period.name || ""
+                )}
+              </div>
+
+              <div class="forecast-icon">
+                ${icon}
+              </div>
+
+              <div class="forecast-temp">
+                ${escapeWeatherHtml(
+                  period.temperature ?? ""
+                )}
+                ${
+                  period.temperature != null
+                    ? "°"
+                    : ""
+                }${escapeWeatherHtml(
+                  period.temperature_unit ||
+                  "F"
+                )}
+              </div>
+
+              <div class="forecast-short">
+                ${escapeWeatherHtml(
+                  description
+                )}
+              </div>
+
+              <div class="forecast-extra">
+                💨
+                ${escapeWeatherHtml(
+                  period.wind_direction ||
+                  ""
+                )}
+                ${
+                  period.wind_speed
+                    ? ` ${escapeWeatherHtml(
+                        period.wind_speed
+                      )}`
+                    : ""
+                }
+              </div>
+
+            </div>
+          `;
+
+        }).join("")
+      : `
+          <div class="weather-no-alerts">
+            Forecast unavailable.
           </div>
-        </div>
-      `).join("")
-    : `<div class="weather-no-alerts">Forecast unavailable.</div>`;
+        `;
 
-  const radarUrl = links.radar || "https://radar.weather.gov/";
-  const forecastUrl = links.forecast || "https://forecast.weather.gov/MapClick.php?lat=38.0406&lon=-84.5037";
+
+  const radarUrl =
+    links.radar ||
+    "https://radar.weather.gov/";
+
+  const forecastUrl =
+    links.forecast ||
+    "https://forecast.weather.gov/MapClick.php?lat=38.0406&lon=-84.5037";
+
 
   container.innerHTML = `
-    <div class="weather-card">
+
+    <div class="
+      weather-card
+      weather-current-card
+    ">
+
       <div class="weather-current-top">
-        <div>
-          <div class="weather-temp">${escapeWeatherHtml(temp)}${temp !== "N/A" ? "°F" : ""}</div>
-          <div class="weather-description">${escapeWeatherHtml(current.description || "Current conditions")}</div>
+
+        <div class="weather-current-main">
+
+          <div class="weather-temp">
+            ${escapeWeatherHtml(temp)}
+            ${temp !== "N/A" ? "°F" : ""}
+          </div>
+
+          <div class="weather-description">
+            ${escapeWeatherHtml(
+              currentDescription
+            )}
+          </div>
+
         </div>
+
+        <div class="weather-hero-icon">
+          ${currentIcon}
+        </div>
+
         <div class="weather-station">
-          ${escapeWeatherHtml(station)}<br>
-          Observed ${escapeWeatherHtml(formatWeatherObservationTime(current.timestamp))}
+          ${escapeWeatherHtml(station)}
+          <br>
+          Observed
+          ${escapeWeatherHtml(
+            formatWeatherObservationTime(
+              current.timestamp
+            )
+          )}
         </div>
+
       </div>
+
 
       <div class="weather-details">
+
         <div class="weather-detail">
-          <span class="weather-detail-label">Feels Like</span>
-          <span class="weather-detail-value">${escapeWeatherHtml(feels)}${feels !== "N/A" ? "°F" : ""}</span>
+
+          <span class="weather-detail-label">
+            <span class="weather-detail-icon">
+              🌡️
+            </span>
+            Feels Like
+          </span>
+
+          <span class="weather-detail-value">
+            ${escapeWeatherHtml(feels)}
+            ${feels !== "N/A" ? "°F" : ""}
+          </span>
+
         </div>
+
+
         <div class="weather-detail">
-          <span class="weather-detail-label">Humidity</span>
-          <span class="weather-detail-value">${escapeWeatherHtml(humidity)}${humidity !== "N/A" ? "%" : ""}</span>
+
+          <span class="weather-detail-label">
+            <span class="weather-detail-icon">
+              💧
+            </span>
+            Humidity
+          </span>
+
+          <span class="weather-detail-value">
+            ${escapeWeatherHtml(humidity)}
+            ${humidity !== "N/A" ? "%" : ""}
+          </span>
+
         </div>
+
+
         <div class="weather-detail">
-          <span class="weather-detail-label">Wind</span>
-          <span class="weather-detail-value">${escapeWeatherHtml(windDirection)} ${escapeWeatherHtml(windSpeed)}${windSpeed !== "N/A" ? " mph" : ""}</span>
+
+          <span class="weather-detail-label">
+            <span class="weather-detail-icon">
+              💨
+            </span>
+            Wind
+          </span>
+
+          <span class="weather-detail-value">
+            ${escapeWeatherHtml(
+              windDirection
+            )}
+            ${escapeWeatherHtml(
+              windSpeed
+            )}
+            ${
+              windSpeed !== "N/A"
+                ? " mph"
+                : ""
+            }
+          </span>
+
         </div>
+
+
         <div class="weather-detail">
-          <span class="weather-detail-label">Wind Gust</span>
-          <span class="weather-detail-value">${escapeWeatherHtml(gustText)}</span>
+
+          <span class="weather-detail-label">
+            <span class="weather-detail-icon">
+              🌬️
+            </span>
+            Wind Gust
+          </span>
+
+          <span class="weather-detail-value">
+            ${escapeWeatherHtml(gustText)}
+          </span>
+
         </div>
+
+
         <div class="weather-detail">
-          <span class="weather-detail-label">Dew Point</span>
-          <span class="weather-detail-value">${escapeWeatherHtml(dewPoint)}${dewPoint !== "N/A" ? "°F" : ""}</span>
+
+          <span class="weather-detail-label">
+            <span class="weather-detail-icon">
+              💧
+            </span>
+            Dew Point
+          </span>
+
+          <span class="weather-detail-value">
+            ${escapeWeatherHtml(dewPoint)}
+            ${
+              dewPoint !== "N/A"
+                ? "°F"
+                : ""
+            }
+          </span>
+
         </div>
+
+
         <div class="weather-detail">
-          <span class="weather-detail-label">Pressure</span>
-          <span class="weather-detail-value">${escapeWeatherHtml(pressure)}${pressure !== "N/A" ? " inHg" : ""}</span>
+
+          <span class="weather-detail-label">
+            <span class="weather-detail-icon">
+              ◉
+            </span>
+            Pressure
+          </span>
+
+          <span class="weather-detail-value">
+            ${escapeWeatherHtml(pressure)}
+            ${
+              pressure !== "N/A"
+                ? " inHg"
+                : ""
+            }
+          </span>
+
         </div>
+
       </div>
+
     </div>
 
+
     <div class="weather-card">
-      <div class="weather-section-title">Active Fayette County Alerts</div>
+
+      <div class="weather-section-title">
+        🛡️ Active Fayette County Alerts
+      </div>
+
       ${alertHtml}
+
     </div>
 
+
     <div class="weather-card">
-      <div class="weather-section-title">Forecast</div>
-      <div class="forecast-grid">${forecastHtml}</div>
+
+      <div class="weather-section-title">
+        📅 Forecast
+      </div>
+
+      <div class="forecast-grid">
+        ${forecastHtml}
+      </div>
+
 
       <div class="weather-links">
-        <a class="weather-link" href="${escapeWeatherHtml(radarUrl)}" target="_blank" rel="noopener">NWS Radar</a>
-        <a class="weather-link" href="${escapeWeatherHtml(forecastUrl)}" target="_blank" rel="noopener">Full Forecast</a>
+
+        <a
+          class="weather-link"
+          href="${escapeWeatherHtml(radarUrl)}"
+          target="_blank"
+          rel="noopener"
+        >
+          📡 NWS Radar
+        </a>
+
+        <a
+          class="weather-link"
+          href="${escapeWeatherHtml(forecastUrl)}"
+          target="_blank"
+          rel="noopener"
+        >
+          📋 Full Forecast
+        </a>
+
       </div>
+
     </div>
+
   `;
 }
 
