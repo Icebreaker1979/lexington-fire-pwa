@@ -10,7 +10,6 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 STATUS_URL = "https://fire.lexingtonky.gov/open/status/status.htm"
-DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK")
 PUSH_SUBSCRIPTIONS_FILE = "/var/lib/lfd-bot/push_subscriptions.json"
 PUSH_PREFERENCES_FILE = "/var/lib/lfd-bot/push_preferences.json"
 VAPID_PRIVATE_KEY = "/opt/lfd-bot/private_key.pem"
@@ -328,35 +327,6 @@ def fetch_incidents():
         })
 
     return incidents
-
-def send_discord(inc, upgraded=False):
-    emoji, color = get_emoji_and_color(inc["code"])
-    if upgraded:
-        prev_label = CODES.get(inc.get("upgraded_from", ""), inc.get("upgraded_from", ""))
-        title = f"{emoji}  Incident #{inc['id']} — UPGRADED"
-        description = f"**{prev_label}** → **{inc['label']}**"
-    else:
-        title = f"{emoji}  Incident #{inc['id']}"
-        description = f"**{inc['label']}**"
-
-    payload = {
-        "embeds": [{
-            "title":       title,
-            "description": description,
-            "color":       color,
-            "fields": [
-                {"name": "Code",      "value": inc["code"]       or "N/A", "inline": True},
-                {"name": "Alarm",     "value": inc["alarm"]      or "N/A", "inline": True},
-                {"name": "Enroute",   "value": inc["enroute"]    or "N/A", "inline": True},
-                {"name": "Arrive",    "value": inc["arrive"]     or "N/A", "inline": True},
-                {"name": "Address",   "value": inc["address"]    or "N/A", "inline": False},
-                {"name": "Apparatus", "value": inc["apparatus"]  or "N/A", "inline": False},
-            ],
-            "footer":    {"text": "Lexington Fire & Emergency Services"},
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        }]
-    }
-    requests.post(DISCORD_WEBHOOK, json=payload, timeout=10, verify=False)
 
 def load_push_subscriptions():
     try:
@@ -790,35 +760,18 @@ def main():
                     # Brand new incident
                     seen[inc_id] = inc_code
 
-                    # Discord only sends selected incident codes
-                    if inc_code in ALLOWED_CODES:
-                        send_discord(inc)
-
                     # PWA push checks each subscriber's preferences
                     send_push_notifications(inc)
 
-                    if inc_code in ALLOWED_CODES:
-                        print(
-                            f"[+] Notified: #{inc_id} "
-                            f"{inc_code} — {inc['address']}"
-                        )
-                    else:
-                        print(
-                            f"[~] Discord skipped: #{inc_id} "
-                            f"{inc_code} — {inc['label']}"
-                        )
+                    print(
+                        f"[+] Processed: #{inc_id} "
+                        f"{inc_code} — {inc['address']}"
+                    )
 
                 elif prev_code != inc_code:
                     # Existing incident changed type
                     seen[inc_id] = inc_code
                     inc["upgraded_from"] = prev_code
-
-                    # Discord still follows ALLOWED_CODES
-                    if inc_code in ALLOWED_CODES:
-                        send_discord(
-                            inc,
-                            upgraded=True
-                        )
 
                     # PWA evaluates every changed incident
                     send_push_notifications(
@@ -826,18 +779,11 @@ def main():
                         upgraded=True
                     )
 
-                    if inc_code in ALLOWED_CODES:
-                        print(
-                            f"[↑] Upgraded: #{inc_id} "
-                            f"{prev_code} → {inc_code} "
-                            f"— {inc['address']}"
-                        )
-                    else:
-                        print(
-                            f"[~] Discord skipped upgrade: "
-                            f"#{inc_id} {prev_code} → {inc_code}"
-                        )
-
+                    print(
+                        f"[↑] Upgraded: #{inc_id} "
+                        f"{prev_code} → {inc_code} "
+                        f"— {inc['address']}"
+                    )
             save_seen(seen)
 
         except Exception as e:
