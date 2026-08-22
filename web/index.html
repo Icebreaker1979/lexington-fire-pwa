@@ -568,7 +568,7 @@
     .map-controls {
       position: fixed;
       z-index: 1500;
-      top: 215px;
+      top: 88px;
       right: 12px;
 
       display: flex;
@@ -592,12 +592,25 @@
       box-shadow: 0 2px 8px rgba(0,0,0,.35);
     }
 
+    #mapScreen.popup-open .map-controls {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-6px);
+    }
+
+    .map-controls {
+      transition:
+        opacity 0.15s ease,
+        transform 0.15s ease;
+    }
+
     .map-filter-panel {
       position: fixed;
       z-index: 1500;
 
-      top: 215px;
-      left: 12px;
+      top: 88px;
+      right: 112px;
+      left: auto;
 
       background: rgba(15, 23, 42, .96);
       border: 1px solid #334155;
@@ -640,96 +653,209 @@
     }
 
     .map-marker {
-      width: 38px;
-      height: 38px;
+  width: 42px;
+  height: 42px;
 
-      display: flex;
-      align-items: center;
-      justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-      border-radius: 50%;
-      border: 4px solid white;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.95);
 
-      font-size: 18px;
+  font-size: 19px;
 
-      box-shadow: 0 2px 8px rgba(0,0,0,.5);
+  box-shadow:
+    0 3px 10px rgba(0,0,0,.5),
+    0 0 0 2px rgba(15,23,42,.35);
 
-      position: relative;
-    }
+  position: relative;
+}
 
-    .map-marker.medical {
-      background: #2563eb;
-    }
+.map-marker.medical {
+  background: #2563eb;
+}
 
-    .map-marker.fire {
-      background: #dc2626;
-    }
+.map-marker.fire {
+  background: #dc2626;
+}
 
-    .map-marker.hazmat {
-      background: #ca8a04;
-    }
+.map-marker.hazmat {
+  background: #ca8a04;
+}
 
-    .map-marker.rescue {
-      background: #ea580c;
-    }
+.map-marker.rescue {
+  background: #ea580c;
+}
 
-    .map-marker.special {
-      background: #9333ea;
-    }
+.map-marker.special {
+  background: #9333ea;
+}
 
-    .map-marker.other {
-      background: #334155;
-    }
+.map-marker.other {
+  background: #475569;
+}
 
-    .multi-count {
-      position: absolute;
+.multi-count {
+  position: absolute;
 
-      top: -8px;
-      right: -8px;
+  top: -7px;
+  right: -7px;
 
-      width: 20px;
-      height: 20px;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 4px;
 
-      border-radius: 50%;
+  border-radius: 999px;
 
-      background: white;
-      color: #111827;
+  background: #f8fafc;
+  color: #0f172a;
 
-      font-size: 11px;
-      font-weight: bold;
+  font-size: 11px;
+  font-weight: 800;
 
-      display: flex;
-      align-items: center;
-      justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-      border: 2px solid #111827;
-    }
+  border: 2px solid #0f172a;
+
+  box-shadow: 0 2px 5px rgba(0,0,0,.3);
+}
 
     .leaflet-popup-content-wrapper,
-    .leaflet-popup-tip {
-      background: #1e293b;
-      color: #f8fafc;
-    }
+.leaflet-popup-tip {
+  background: #172033;
+  color: #f8fafc;
+}
 
-    .popup-title {
-      font-weight: bold;
-      font-size: 15px;
-      margin-bottom: 6px;
-    }
+.leaflet-popup-content-wrapper {
+  border: 1px solid #334155;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.4);
+}
 
-    .popup-address {
-      margin-bottom: 8px;
-    }
+.leaflet-popup-content {
+  margin: 13px 14px;
+  min-width: 230px;
+}
 
-    .popup-detail {
-      font-size: 12px;
-      margin-top: 3px;
-    }
+.leaflet-container a.leaflet-popup-close-button {
+  color: #cbd5e1;
+  font-size: 20px;
+}
 
-    .popup-divider {
-      border-top: 1px solid #475569;
-      margin: 10px 0;
-    }
+.popup-address {
+  padding-right: 18px;
+  margin-bottom: 10px;
+
+  color: #ffffff;
+  font-size: 15px;
+  line-height: 1.25;
+  font-weight: 750;
+}
+
+.popup-location-count {
+  margin-bottom: 10px;
+  padding: 6px 8px;
+
+  border-radius: 8px;
+  background: #0f172a;
+
+  color: #cbd5e1;
+  font-size: 11px;
+}
+
+.popup-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.popup-title {
+  min-width: 0;
+
+  color: #f8fafc;
+  font-weight: 750;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.popup-code {
+  flex-shrink: 0;
+
+  padding: 3px 7px;
+
+  border-radius: 999px;
+  background: #334155;
+
+  color: #e2e8f0;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.popup-incident-number {
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.popup-time-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+
+  margin-top: 9px;
+}
+
+.popup-time-box {
+  min-width: 0;
+
+  padding: 6px 3px;
+
+  border: 1px solid #334155;
+  border-radius: 8px;
+
+  background: #0f172a;
+
+  text-align: center;
+}
+
+.popup-time-label {
+  display: block;
+
+  color: #94a3b8;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.popup-time-value {
+  display: block;
+  margin-top: 2px;
+
+  color: #f8fafc;
+  font-size: 11px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.popup-apparatus {
+  margin-top: 9px;
+}
+
+.popup-apparatus .detail-row {
+  padding-top: 0;
+}
+
+.popup-apparatus .apparatus-status-list {
+  margin-top: 6px;
+}
+
+.popup-divider {
+  border-top: 1px solid #475569;
+  margin: 12px 0;
+}
 
     .location-marker {
       width: 18px;
@@ -3102,6 +3228,32 @@ function initializeMap() {
       .addTo(
         map
       );
+
+  map.on(
+  "popupopen",
+  () => {
+
+    document
+      .getElementById("mapScreen")
+      .classList.add("popup-open");
+
+    document
+      .getElementById("mapFilterPanel")
+      .classList.remove("open");
+
+  }
+);
+
+map.on(
+  "popupclose",
+  () => {
+
+    document
+      .getElementById("mapScreen")
+      .classList.remove("popup-open");
+
+  }
+);
 }
 
 
@@ -3167,7 +3319,7 @@ function buildPopup(group) {
 
   let html = `
     <div class="popup-address">
-      ${items[0].address}
+      📍 ${items[0].address || "Address unavailable"}
     </div>
   `;
 
@@ -3178,10 +3330,8 @@ function buildPopup(group) {
   ) {
 
     html += `
-      <div class="popup-detail">
-        <strong>
-          ${items.length} active incidents at this location
-        </strong>
+      <div class="popup-location-count">
+        ${items.length} active incidents at this location
       </div>
     `;
 
@@ -3203,28 +3353,64 @@ function buildPopup(group) {
 
 
       html += `
-        <div class="popup-title">
-          ${getEmoji(inc.code)} ${inc.label}
+        <div class="popup-title-row">
+
+          <div class="popup-title">
+            ${getEmoji(inc.code)}
+            ${inc.label}
+          </div>
+
+          <div class="popup-code">
+            ${inc.code}
+          </div>
+
         </div>
 
-        <div class="popup-detail">
+
+        <div class="popup-incident-number">
           Incident #${inc.id}
         </div>
 
-        <div class="popup-detail">
-          Alarm: ${inc.alarm || "N/A"}
+
+        <div class="popup-time-grid">
+
+          <div class="popup-time-box">
+            <span class="popup-time-label">
+              Alarm
+            </span>
+
+            <span class="popup-time-value">
+              ${inc.alarm || "N/A"}
+            </span>
+          </div>
+
+
+          <div class="popup-time-box">
+            <span class="popup-time-label">
+              Enroute
+            </span>
+
+            <span class="popup-time-value">
+              ${inc.enroute || "N/A"}
+            </span>
+          </div>
+
+
+          <div class="popup-time-box">
+            <span class="popup-time-label">
+              Arrived
+            </span>
+
+            <span class="popup-time-value">
+              ${inc.arrive || "N/A"}
+            </span>
+          </div>
+
         </div>
 
-        <div class="popup-detail">
-          Enroute: ${inc.enroute || "N/A"}
-        </div>
 
-        <div class="popup-detail">
-          Arrived: ${inc.arrive || "N/A"}
-        </div>
-
-        <div class="popup-detail">
-          Units: ${inc.apparatus || "N/A"}
+        <div class="popup-apparatus">
+          ${renderApparatusStatus(inc)}
         </div>
       `;
 
@@ -3298,10 +3484,10 @@ function renderMap() {
           `,
 
           iconSize:
-            [38, 38],
+            [42, 42],
 
           iconAnchor:
-            [19, 19]
+            [21, 21]
 
         });
 
